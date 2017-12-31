@@ -1,0 +1,53 @@
+//import java.util.regex.*
+//Tuya and jinvoo control
+rule "Switch Action"
+    when
+		Item tuya_command received command
+	then
+	     
+        logInfo("Tuya", "Execute action [{}] ", receivedCommand.toString)
+        //problem with script so cant get respoinse directly
+        var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/ohtuya.js " +  receivedCommand.toString, 5000)
+        logInfo("Tuya", "resp {}", resp)
+        LivingRoomHeater.postUpdate(resp)
+end
+
+rule "Switch heater"
+when 
+    Item LivingRoomHeater received command
+then
+    logInfo("LivingRoomHeater change", "turning heater to {}", receivedCommand) 
+    if ( LivingRoomHeater.state.toString.toLowerCase.contains("on")) {
+        tuya_command.sendCommand("ON")
+    }
+    else {
+        tuya_command.sendCommand("OFF")
+    }
+end
+
+rule "Control Temp"
+when
+    Item KitchenThermostatCurrentTemp changed
+    or
+    Item KitchenThermostatTargetTemp changed
+then
+    if ( (KitchenThermostatCurrentTemp.state as Number) < (KitchenThermostatTargetTemp.state as Number) ) {
+        logInfo("Thermostat", "turning on heating to increase from {} to {}", KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
+        tuya_command.sendCommand("ON")
+    }
+    else{
+        logInfo("Thermostat", "turning off heating to decrease from from {} to {}", KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
+        tuya_command.sendCommand("OFF")
+    }
+end
+
+
+rule "Update Thermostat Value"
+when
+    Item HueKitchenTemp changed
+then
+    logInfo("Thermostat", "update kitchen temp {}", HueKitchenTemp)
+    KitchenThermostatCurrentTemp.postUpdate(Float::parseFloat(String::format("%s",HueKitchenTemp.state).replace(' ','')))
+   
+end
+
