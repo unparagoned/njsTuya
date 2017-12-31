@@ -1,0 +1,10 @@
+//Tuya items and thermo
+Group gThermoStats
+Group gKitchenThermostat "Kitchen Thermostat" (gThermostats) [ "Thermostat" ]
+Number KitchenThermostatCurrentTemp "Kitchen Thermostat Current Temperature" (gKitchenThermostat) [ "CurrentTemperature" ]
+Number KitchenThermostatTargetTemp "Kitchen Thermostat Target Temperature" (gKitchenThermostat) [ "TargetTemperature" ]
+String KitchenThermostatHeatingCoolingMode "Kitchen Thermostat Heating/Cooling Mode" (gKitchenThermostat) [ "homekit:HeatingCoolingMode" ]
+
+String tuya_command "Tuya command"
+Switch tuya_state "Tuya switch state"
+Switch LivingRoomHeater	"Heater state"  (gSwitch)  [ "Switchable" ]
