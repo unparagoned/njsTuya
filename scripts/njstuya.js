@@ -3,15 +3,25 @@ npm install codetheweb/tuyapi
 node ohtuya.js args 
 args can be, ON, OFF, or TOGGLE. No arguement returns state
 @todo set up js to log properly, sending to console messes up output.
+@todo limit connection frequency seem to get connection errors
 */
 
 const TuyaDevice = require('tuyapi');
 var args = process.argv.slice(2);
+function getArgs(allArgs, argName) {
+    var nameIndex = allArgs.indexOf(argName);
+    argValue = allArgs[ nameIndex + 1 ];
+    //console.log(argName + " value is: " + argValue)
+    return argValue;
+}
+var tuyaIP = getArgs(args, "-ip");
+var tuyaID = getArgs(args, "-id");
+var tuyaKey = getArgs(args, "-key");
 var tuya = new TuyaDevice({
     type: 'outlet',
-    ip: 'changeToSwitchIP',
-    id: 'changeToID',
-    key: 'changeToKey'
+    ip: tuyaIP,
+    id: tuyaID,
+    key: tuyaKey
 });
 
 function bmap(istate) {
