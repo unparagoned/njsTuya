@@ -1,16 +1,61 @@
 //import java.util.regex.*
 //Tuya and jinvoo control
-rule "Switch Action"
-    when
-		Item tuya_command received command
-	then
-	     
-        logInfo("Tuya", "Execute action [{}] ", receivedCommand.toString)
+// The Rules DSL has deprecated importing whole libraries using *, import those classes you actually
+// use individually.
+import org.eclipse.xtext.xbase.lib.Functions
+var TUYA_DELAY=5
+// Those who come from Java will recognize this syntax. The < > lets us define the types of the 
+// arguments as well as the return value. If you plan on using this syntax make sure the last line in the 
+// lambda matches the type of the last item in the < >
+//
+// You no longer need supply the types for the arguments (stuff before the |)
+val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
+    //logInfo("lambda", s.state.toString)
+    logInfo("Tuya", "Execute action [{}] ", c)
         //problem with script so cant get respoinse directly
-        var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/ohtuya.js " +  receivedCommand.toString, 5000)
-        logInfo("Tuya", "resp {}", resp)
-        LivingRoomHeater.postUpdate(resp)
+        var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 5000)
+        logInfo("Tuya", "resp [{}]", resp)
+        if(resp.contains("Error")){
+            s.postUpdate("UNDEF")
+        }
+        else
+        {
+            s.postUpdate(resp)
+        }
+        tuya_lastConnection.sendCommand(now.millis)
+    s.state.toString + " logged"
+    return resp;
+]
+
+
+
+
+rule "Switch Living room Action"
+    when
+		Item LivingRoomHeaterCommand received command
+	then
+        if (! LivingRoomHeaterDetails.state.toString.contains("key"))
+        {
+            logInfo("tuya", "no config info found running config")
+            tuya_config.sendCommand("config")
+        }        
+        logInfo("Tuya", "Should run commans as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+        tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
 end
+
+rule "Switch Bedroom Action"
+    when
+		Item BedroomHeaterCommand received command
+	then
+        if (! BedroomHeaterDetails.state.toString.contains("key"))
+        {
+            logInfo("tuya", "no config info found running config")
+            tuya_config.sendCommand("config")
+        }        
+        logInfo("Tuya", "Should run commans as {}", BedroomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+        tuyaAction.apply(BedroomHeater, BedroomHeaterDetails.state.toString + " " + receivedCommand.toString) 
+end
+
 
 rule "Switch heater"
 when 
@@ -18,10 +63,10 @@ when
 then
     logInfo("LivingRoomHeater change", "turning heater to {}", receivedCommand) 
     if ( LivingRoomHeater.state.toString.toLowerCase.contains("on")) {
-        tuya_command.sendCommand("ON")
+        LivingRoomHeaterCommand.sendCommand("ON")
     }
     else {
-        tuya_command.sendCommand("OFF")
+        LivingRoomHeaterCommand.sendCommand("OFF")
     }
 end
 
@@ -33,11 +78,16 @@ when
 then
     if ( (KitchenThermostatCurrentTemp.state as Number) < (KitchenThermostatTargetTemp.state as Number) ) {
         logInfo("Thermostat", "turning on heating to increase from {} to {}", KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
-        tuya_command.sendCommand("ON")
+        if( LivingRoomHeater.state != ON){
+            LivingRoomHeaterCommand.sendCommand("ON")
+        }
+        
     }
     else{
         logInfo("Thermostat", "turning off heating to decrease from from {} to {}", KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
-        tuya_command.sendCommand("OFF")
+        if( LivingRoomHeater.state != OFF){
+            LivingRoomHeaterCommand.sendCommand("OFF")
+        }
     }
 end
 
@@ -51,3 +101,36 @@ then
    
 end
 
+
+rule "Updates Status"
+    when
+        Time cron "10 * * * * ?"
+    then
+    /*
+        var cprog =  now.millis  - 
+
+        if ( spotify_current_playing.state == ON ){
+            cprog = cprog - (spotify_current_update_time.state as DateTimeType).calendar.timeInMillis
+            
+            if( spotify_current_progress.state != NULL ) {
+                cprog = cprog + Integer::parseInt(spotify_current_progress.state.toString) 
+            }
+
+            if( cprog > Integer::parseInt(spotify_current_duration.state.toString)){
+                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                cprog=1
+                spotify_current_progress.sendCommand("1")
+                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                postUpdate(spotify_current_update_time, now.toString)
+                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                sendCommand(spotify_forceupadte,ON)
+                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                    
+            }
+            else{
+            postUpdate(spotify_current_progress_estimated, cprog / 1000)   
+            }
+        }                  
+        */     
+
+end

@@ -5,6 +5,14 @@ Number KitchenThermostatCurrentTemp "Kitchen Thermostat Current Temperature" (gK
 Number KitchenThermostatTargetTemp "Kitchen Thermostat Target Temperature" (gKitchenThermostat) [ "TargetTemperature" ]
 String KitchenThermostatHeatingCoolingMode "Kitchen Thermostat Heating/Cooling Mode" (gKitchenThermostat) [ "homekit:HeatingCoolingMode" ]
 
+String tuya_config "Rule to set device values"
 String tuya_command "Tuya command"
 Switch tuya_state "Tuya switch state"
 Switch LivingRoomHeater	"Heater state"  (gSwitch)  [ "Switchable" ]
+DateTime tuya_lastConnection "Last Command Time"
+String LivingRoomHeaterDetails "-ip <DEVIP> - id <DEVID> -key <DEVKEY>"
+String LivingRoomHeaterCommand "Heater Command"
+Switch BedroomHeater	"Heater state"  (gSwitch)  [ "Switchable" ]
+DateTime tuya_lastConnection "Last Command Time"
+String BedroomHeaterDetails "-ip <DEVIP> - id <DEVID> -key <DEVKEY>"
+String BedroomHeaterCommand "Heater Command"
