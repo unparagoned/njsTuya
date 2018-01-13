@@ -12,7 +12,7 @@ But for this you can just
 copy the njstuya.js file from the scripts folder into your openhab2.scrips folder
 You can also look at the items and rules files for a working setup.
 
-You have to edit the ohtuya.js file with your devices ip, id and key.
+You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below)
 This involves MIM of the connection.
 Instructions can be found here: https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md
 
