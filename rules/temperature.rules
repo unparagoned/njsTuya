@@ -1,19 +1,29 @@
 //import java.util.regex.*
 //Tuya and jinvoo control
-// The Rules DSL has deprecated importing whole libraries using *, import those classes you actually
-// use individually.
+
 import org.eclipse.xtext.xbase.lib.Functions
 var TUYA_DELAY=5
-// Those who come from Java will recognize this syntax. The < > lets us define the types of the 
-// arguments as well as the return value. If you plan on using this syntax make sure the last line in the 
-// lambda matches the type of the last item in the < >
-//
-// You no longer need supply the types for the arguments (stuff before the |)
+/*
+Use the following to config items holding the id and key of device
+//send command to tuya_config to apply values to items. 
+var LivingRoomHeaterDetailsConfig = "-ip 192.168.x.y -id 0123123sdfdf312312f -key 13mfdkj32lj213"
+var BedroomHeaterDetailsConfig = "-ip 192.168.x.z -id 324132dsasad21213123 -key sdfsdf32wdedewd"
+
+rule "TuyaConfig"
+    when
+		Item tuya_config received command
+	then
+    LivingRoomHeaterDetails.sendCommand(LivingRoomHeaterDetailsConfig)
+    BedroomHeaterDetails.sendCommand(BedroomHeaterDetailsConfig)
+    logInfo("tuya config Living room {} and heater {}", LivingRoomHeaterDetails.state.toString, BedroomHeaterDetails.state.toString)
+end
+*/
+
 val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
     //logInfo("lambda", s.state.toString)
     logInfo("Tuya", "Execute action [{}] ", c)
         //problem with script so cant get respoinse directly
-        var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 5000)
+        var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 50000)
         logInfo("Tuya", "resp [{}]", resp)
         if(resp.contains("Error")){
             s.postUpdate("UNDEF")
