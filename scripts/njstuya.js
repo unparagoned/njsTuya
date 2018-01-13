@@ -35,10 +35,12 @@ function bmap(istate) {
 var newState = false;
 var changeState = false;
 
+
 tuya.resolveIds().then(() => {
     tuya.get().then(status => {
         if (db) { console.log('Status: ' + status); }
         newState = status;
+
         if (args.includes("ON")) {
             newState = true;
             changeState = true;
@@ -52,10 +54,20 @@ tuya.resolveIds().then(() => {
             changeState = true;
         }
 
-        tuya.set({ set: newState }).then(result => {
-            if (db) { console.log('Result of setting status to ' + newState + ': ' + result); }
-            console.log(bmap(result));
+        if (changeState) {
+            tuya.set({ set: newState }).then(result => {
+                if (db) { console.log('Result of setting status to ' + newState + ': ' + result); }
+                if (result) {
+                    console.log(bmap(!status));
+                } else {
+                    console.log(bmap(status));
+                }
+                return;
+            });
+        } else {
+            console.log(bmap(status));
             return;
-        });
+        }
+
     });
 });
