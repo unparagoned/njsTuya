@@ -1,6 +1,7 @@
 /* Simple wrapper for tuyapi for use with openhab or command line
 npm install codetheweb/tuyapi
 node ohtuya.js args 
+arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf TOGGLE
 args can be, ON, OFF, or TOGGLE. No arguement returns state
 @todo set up js to log properly, sending to console messes up output.
 @todo limit connection frequency seem to get connection errors
@@ -8,9 +9,10 @@ args can be, ON, OFF, or TOGGLE. No arguement returns state
 
 const TuyaDevice = require('tuyapi');
 var args = process.argv.slice(2);
+
 function getArgs(allArgs, argName) {
     var nameIndex = allArgs.indexOf(argName);
-    argValue = allArgs[ nameIndex + 1 ];
+    argValue = allArgs[nameIndex + 1];
     //console.log(argName + " value is: " + argValue)
     return argValue;
 }
@@ -30,7 +32,7 @@ function bmap(istate) {
 
 var newState = false;
 
-tuya.getStatus(function(error, status) {
+tuya.get(function(error, status) {
     if (error) { return console.log(error); }
     //console.log('Start status: ' + bmap(status));
 
@@ -43,11 +45,11 @@ tuya.getStatus(function(error, status) {
     if (args.includes("TOGGLE")) {
         newState = !status;
     }
-    tuya.setStatus(newState, function(error, result) {
+    tuya.set(newState, function(error, result) {
         if (error) { return console.log(error); }
         //console.log('Set status to ' + bmap(newState) + ': ' + bmap(result));
 
-        tuya.getStatus(function(error, status) {
+        tuya.get(function(error, status) {
             if (error) { return console.log(error); }
             // console.log('End state: ' + [status ? 'on' : 'off']);
             console.log(bmap(status));
