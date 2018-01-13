@@ -2,8 +2,6 @@
 Openhab interface for Tuya home automation devices sold under various names
 This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
 
-# Non-working: Due to change tuyapi the current setup might not work. Also a recent power cut has let to home system being down preventing a quick fix.
-
 #Instructions:
 
 Run
@@ -24,6 +22,9 @@ Commands are ON, OFF, TOGGLE, STATE,
 e.g. node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 ON 
 All commands return the state of the switch.
 
+# Issues
+
+There are some reliability issues with tuyapi. Latest changes changed the syntax but still getting error maybe at an even higher rate. 
 
 ## Related Projects:
 https://github.com/clach04/python-tuya
