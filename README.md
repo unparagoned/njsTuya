@@ -29,11 +29,13 @@ There are some reliability issues with tuyapi. Latest changes changed the syntax
 ## Habpanel
 
 Here is hw you would use a slider in habpanel to change the set temp. 
+```
 
 <div class="name">Set Target Temp: {{itemValue('KitchenThermostatTargetTemp')}}</div>
 <div ng-init="slider = { value: itemValue('KitchenThermostatTargetTemp'), options: { floor: 0, ceil: 40, step: 1, showSelectionBar: true } };"></div>
 <rzslider rz-slider-model="slider.value" rz-slider-options="slider.options" ng-click="sendCmd('KitchenThermostatTargetTemp', slider.value)"></rzslider>
 
+```
   
 
 ## Related Projects:
