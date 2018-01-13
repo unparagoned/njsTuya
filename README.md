@@ -2,6 +2,8 @@
 Openhab interface for Tuya home automation devices sold under various names
 This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
 
+# Non-working: Due to change tuyapi the current setup might not work. Also a recent power cut has let to home system being down preventing a quick fix.
+
 #Instructions:
 
 Run
