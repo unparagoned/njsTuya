@@ -1,6 +1,7 @@
 //Tuya items and thermo
 Group gThermoStats
 Group gKitchenThermostat "Kitchen Thermostat" (gThermostats) [ "Thermostat" ]
+Group gThermoCommand "Thermo Received Command"
 Number KitchenThermostatCurrentTemp "Kitchen Thermostat Current Temperature" (gKitchenThermostat) [ "CurrentTemperature" ]
 Number KitchenThermostatTargetTemp "Kitchen Thermostat Target Temperature" (gKitchenThermostat) [ "TargetTemperature" ]
 String KitchenThermostatHeatingCoolingMode "Kitchen Thermostat Heating/Cooling Mode" (gKitchenThermostat) [ "homekit:HeatingCoolingMode" ]
@@ -13,8 +14,8 @@ Switch tuya_state "Tuya switch state"
 Switch LivingRoomHeater	"Heater state"  (gSwitch)  [ "Switchable" ]
 DateTime tuya_lastConnection "Last Command Time"
 String LivingRoomHeaterDetails "-ip <DEVIP> - id <DEVID> -key <DEVKEY>"
-String LivingRoomHeaterCommand "Heater Command"
+String LivingRoomHeaterCommand "Heater Command" (gThermoCommand)
 Switch BedroomHeater	"Heater state"  (gSwitch)  [ "Switchable" ]
 DateTime tuya_lastConnection "Last Command Time"
 String BedroomHeaterDetails "-ip <DEVIP> - id <DEVID> -key <DEVKEY>"
-String BedroomHeaterCommand "Heater Command"
+String BedroomHeaterCommand "Heater Command" (gThermoCommand)

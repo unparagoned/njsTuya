@@ -1,32 +1,22 @@
-//import java.util.regex.*
-//Tuya and jinvoo control
-
 import org.eclipse.xtext.xbase.lib.Functions
-var TUYA_DELAY=5
-/*
-Use the following to config items holding the id and key of device
-//send command to tuya_config to apply values to items. 
-var LivingRoomHeaterDetailsConfig = "-ip 192.168.x.y -id 0123123sdfdf312312f -key 13mfdkj32lj213"
-var BedroomHeaterDetailsConfig = "-ip 192.168.x.z -id 324132dsasad21213123 -key sdfsdf32wdedewd"
 
-rule "TuyaConfig"
-    when
-		Item tuya_config received command
-	then
-    LivingRoomHeaterDetails.sendCommand(LivingRoomHeaterDetailsConfig)
-    BedroomHeaterDetails.sendCommand(BedroomHeaterDetailsConfig)
-    logInfo("tuya config Living room {} and heater {}", LivingRoomHeaterDetails.state.toString, BedroomHeaterDetails.state.toString)
-end
-*/
+val Functions$Function2<String, String, String> tuyaExec= [ c, r |
+    logInfo("Tuya", "Execute [{}] ", c)
+    var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 50000) + " "
+    return resp;
+]
 
 val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
     //logInfo("lambda", s.state.toString)
-    logInfo("Tuya", "Execute action [{}] ", c)
+    var intString = c
+    logInfo("Tuya", "Execute action [{}] now [{}]", c, intString)
         //problem with script so cant get respoinse directly
-        var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 50000)
+        var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + intString, 50000)
+       // var resp = tuyaExec.apply(intString, "rand")
         logInfo("Tuya", "resp [{}]", resp)
         if(resp.contains("Error")){
             s.postUpdate("UNDEF")
+
         }
         else
         {
@@ -49,7 +39,7 @@ val Functions$Function1<String, String> getTuyaStatus= [ c |
         tuyaLog = "Here are the live tuya devices on your Network: "
     }
     //otherwise the ip/id is passed and the function reutrn as soon as it sees that device online. its faster.
-    var resp = executeCommandLine("python /etc/openhab2/scripts/njstuyamonitor.py " + njsArg, 50000)
+    var resp = executeCommandLine("python /etc/openhab2/scripts/njstuyamonitor.py " + njsArg, 5000)
     if( resp.contains("Error") ){
         logInfo("Tuya", "Error getting devices [{}]", resp)
         return "1"
@@ -66,6 +56,33 @@ val Functions$Function1<String, String> getTuyaStatus= [ c |
 
 ]
 
+rule "Room Action"
+    when
+		Item LivingRoomHeaterCommand received command
+	then
+
+    if (! LivingRoomHeaterDetails.state.toString.contains("key"))
+    {
+        logInfo("tuya", "no config info found running config")
+        tuya_config.sendCommand("config")
+    }
+    if ( getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString).contains("-ip") ){
+        logInfo("Tuya", "Should run command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+        tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
+    }
+    else {
+        logInfo("Tuya", "Device was not sending availability messages")   
+    }
+    if ( getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString).contains("UNDEF") ) {
+        
+        Thread::sleep(TUYA_DELAY + 5000 * (RETRIES -loopNumber))
+        logInfo("Tuya", "Loop number {}",loopNumber)
+    } 
+
+//Try action if getTuyaSTatus is locked out 
+    tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
+     
+end
 //Gets a list of ip and ids of devices live, 
 //Or with an arugment of the ip or id it will respond with the state as soon as found.
 rule "Get Live Tuya Devices"
@@ -77,25 +94,40 @@ when
 end
 
 
-
+/*
 rule "Switch Living room Action"
     when
 		Item LivingRoomHeaterCommand received command
 	then
+    var loopNumber=RETRIES
+    while (loopNumber>0){
         if (! LivingRoomHeaterDetails.state.toString.contains("key"))
         {
             logInfo("tuya", "no config info found running config")
             tuya_config.sendCommand("config")
         }
         if ( getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString).contains("-ip") ){
-            logInfo("Tuya", "Should run commans as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+            logInfo("Tuya", "Should run command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        
             tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
         }
         else {
             logInfo("Tuya", "Device was not sending availability messages")   
-        }        
+        }
+        if ( getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString).contains("UNDEF") ) {
+            
+            Thread::sleep(TUYA_DELAY + 5000 * (RETRIES -loopNumber))
+            logInfo("Tuya", "Loop number {}",loopNumber)
+        } 
+        else {
+            loopNumber = 0
+        }
+    loopNumber=loopNumber -1
+    }
+//Try action if getTuyaSTatus is locked out 
+    tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
+     
 end
-
+*/
 rule "Switch Bedroom Action"
     when
 		Item BedroomHeaterCommand received command
@@ -105,7 +137,7 @@ rule "Switch Bedroom Action"
             logInfo("tuya", "no config info found running config")
             tuya_config.sendCommand("config")
         }        
-        logInfo("Tuya", "Should run commans as {}", BedroomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+        logInfo("Tuya", "Should run command as {}", BedroomHeaterDetails.state.toString + " " + receivedCommand.toString)        
         tuyaAction.apply(BedroomHeater, BedroomHeaterDetails.state.toString + " " + receivedCommand.toString) 
 end
 
@@ -130,7 +162,7 @@ when
     Item KitchenThermostatTargetTemp changed
 then
     if ( (KitchenThermostatCurrentTemp.state as Number) < (KitchenThermostatTargetTemp.state as Number) ) {
-        logInfo("Thermostat", "turning on heating to increase from {} to {}", KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
+        logInfo("Thermostat", "turning on heating from state {} to increase from {} to {}", LivingRoomHeater ,KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
         if( LivingRoomHeater.state != ON){
             LivingRoomHeaterCommand.sendCommand("ON")
         }
@@ -153,13 +185,14 @@ then
     KitchenThermostatCurrentTemp.postUpdate(Float::parseFloat(String::format("%s",HueKitchenTemp.state).replace(' ','')))
    
 end
+/*
 
-
-rule "Updates Status"
+rule "cron Updates Status"
     when
-        Time cron "10 * * * * ?"
+        Time cron "0/10 * * * * ?"
     then
-    /*
+         logInfo("Thermostat cron", "cron {}", now.millis)
+
         var cprog =  now.millis  - 
 
         if ( spotify_current_playing.state == ON ){
@@ -184,6 +217,7 @@ rule "Updates Status"
             postUpdate(spotify_current_progress_estimated, cprog / 1000)   
             }
         }                  
-        */     
+     
 
 end
+*/
