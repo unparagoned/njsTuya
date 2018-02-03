@@ -1,4 +1,5 @@
-/* Simple wrapper for tuyapi for use with openhab or command line
+/* 
+ * Simple wrapper for tuyapi for use with openhab or command line
 npm install codetheweb/tuyapi
 node ohtuya.js args 
 arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf TOGGLE
@@ -10,6 +11,7 @@ args can be, ON, OFF, or TOGGLE. No arguement returns state
 const TuyaDevice = require('tuyapi');
 var args = process.argv.slice(2);
 _DEBUG = false;
+
 var db = _DEBUG;
 
 function getArgs(allArgs, argName) {
