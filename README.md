@@ -12,7 +12,7 @@ But for this you can just
 copy the njstuya.js file from the scripts folder into your openhab2.scrips folder
 You can also look at the items and rules files for a working setup.
 
-You have to edit the ohtuya.js file with your devices ip, id and key.
+You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below)
 This involves MIM of the connection.
 Instructions can be found here: https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md
 
@@ -25,6 +25,18 @@ All commands return the state of the switch.
 # Issues
 
 There are some reliability issues with tuyapi. Latest changes changed the syntax but still getting error maybe at an even higher rate. 
+
+## Habpanel
+
+Here is hw you would use a slider in habpanel to change the set temp. 
+```
+
+<div class="name">Set Target Temp: {{itemValue('KitchenThermostatTargetTemp')}}</div>
+<div ng-init="slider = { value: itemValue('KitchenThermostatTargetTemp'), options: { floor: 0, ceil: 40, step: 1, showSelectionBar: true } };"></div>
+<rzslider rz-slider-model="slider.value" rz-slider-options="slider.options" ng-click="sendCmd('KitchenThermostatTargetTemp', slider.value)"></rzslider>
+
+```
+  
 
 ## Related Projects:
 https://github.com/clach04/python-tuya
