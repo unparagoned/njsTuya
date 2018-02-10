@@ -5,6 +5,8 @@ from socket import *
 import sys
 import os
 import errno
+import datetime
+
 
 _DEBUG = False
 dp = _DEBUG
@@ -96,6 +98,7 @@ try:
         if(dp): print (' Devices on network details:\n%s' % m[0])
         ipi = re.match('.*"ip":"(.+?)"."gwId":"(.+?)".*', m[0])
         if ipi:
+            if(dp): print (datetime.datetime.now())
             ip = ipi.group(1)
             gwId = ipi.group(2).lower()
             if (ip, gwId) in var_list:
