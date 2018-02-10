@@ -2,6 +2,8 @@
 Group gThermoStats
 Group gKitchenThermostat "Kitchen Thermostat" (gThermostats) [ "Thermostat" ]
 Group gThermoCommand "Thermo Received Command"
+Group:Switch gTuya "Tuya devices"
+Group gTuyaDetails "Tuya details"
 Number KitchenThermostatCurrentTemp "Kitchen Thermostat Current Temperature" (gKitchenThermostat) [ "CurrentTemperature" ]
 Number KitchenThermostatTargetTemp "Kitchen Thermostat Target Temperature" (gKitchenThermostat) [ "TargetTemperature" ]
 String KitchenThermostatHeatingCoolingMode "Kitchen Thermostat Heating/Cooling Mode" (gKitchenThermostat) [ "homekit:HeatingCoolingMode" ]
@@ -11,11 +13,13 @@ String is_tuya_online "Get live tuya devices"
 String tuya_config "Rule to set device values"
 String tuya_command "Tuya command"
 Switch tuya_state "Tuya switch state"
-Switch LivingRoomHeater	"Heater state"  (gSwitch)  [ "Switchable" ]
+Switch LivingRoomHeater	"Heater state"  (gTuya, gSwitch)  [ "Switchable" ]
 DateTime tuya_lastConnection "Last Command Time"
-String LivingRoomHeaterDetails "-ip <DEVIP> - id <DEVID> -key <DEVKEY>"
+String LivingRoomHeaterDetails "LivingRoomHeaterCommand" (gTuyaDetails)
 String LivingRoomHeaterCommand "Heater Command" (gThermoCommand)
-Switch BedroomHeater	"Heater state"  (gSwitch)  [ "Switchable" ]
-DateTime tuya_lastConnection "Last Command Time"
-String BedroomHeaterDetails "-ip <DEVIP> - id <DEVID> -key <DEVKEY>"
+Switch BedroomHeater	"Heater state"  (gTuya, gSwitch)  [ "Switchable" ]
+DateTime tuya_lastConnection "Last Command Time" 
+String BedroomHeaterDetails "BedroomHeaterCommand" (gTuyaDetails)
 String BedroomHeaterCommand "Heater Command" (gThermoCommand)
+String BroadcastState "Broadcast State"
+String TuyaManual "Tuya Manual"
