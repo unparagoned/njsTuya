@@ -4,7 +4,9 @@ This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tu
 
 #Instructions:
 
-Run
+
+You may need to setup npm then do stuff like npm init --yes
+Once that is done Run 
 npm install codetheweb/tuyapi
 
 Then you need to download this project and place the files in the correct location. I have a seperate git folder and rsync the relevent files, since I have my main openhab in it's own git.
