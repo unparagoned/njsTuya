@@ -60,9 +60,10 @@ tuya.resolveIds().then(() => {
             tuya.set({ set: newState }).then(result => {
                 if (db) { console.log('Result of setting status to ' + newState + ': ' + result); }
                 if (result) {
-                    console.log(bmap(!status));
+                    console.log(bmap(newState));
                 } else {
-                    console.log(bmap(status));
+                    //this sounds more like an error than just a fail.
+                    console.log(bmap(!newState));
                 }
                 return;
             });
