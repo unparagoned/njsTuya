@@ -4,10 +4,11 @@ This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tu
 
 #Instructions:
 
-
-You may need to setup npm then do stuff like npm init --yes
-Once that is done Run 
+Install tuyapi from the same folder that the njsTuya.js is in
+```
+cd /etc/openhab2/scripts
 npm install codetheweb/tuyapi
+```
 
 Then you need to download this project and place the files in the correct location. I have a seperate git folder and rsync the relevent files, since I have my main openhab in it's own git.
 But for this you can just 
