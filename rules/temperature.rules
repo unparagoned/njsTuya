@@ -3,23 +3,25 @@ import java.util.concurrent.locks.ReentrantLock
 var ldtuya = 0
 var ldtuyaBad = 0
 val ReentrantLock locktuya  = new ReentrantLock()
-
-
+var _DEBUG = true
+var db = true
 val Functions$Function2<String, String, String> tuyaExec= [ c, r |
-    logInfo("Tuya", "Execute [{}] ", c)
+    if(db) { logInfo("Tuya", "Execute [{}] ", c)}
+
     var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 50000) + " "
     return resp
 ]
 
 val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
-    //logInfo("lambda", s.state.toString)
+    //if(db) { logInfo("lambda", s.state.toString)
 
     var intString = c
-    logInfo("Tuya", "Execute action [{}] ", c)
+    if(db) {logInfo("Tuya", "Execute action [{}] ", c)}
     //problem with script so cant get respoinse directly
+    Thread::sleep(10)
     var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 50000)
     // var resp = tuyaExec.apply(intString, "rand")
-    logInfo("Tuya", "resp [{}]", resp)
+    logInfo("Tuya", "Execute action [{}] : resp [{}]", c, resp)
     if(resp.contains("Error") || resp.contains("Warning")){
         s.postUpdate("UNDEF")
         gTuya.postUpdate("UNDEF")
@@ -31,12 +33,13 @@ val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
         ldtuya = ldtuya + 1
     }
     tuya_lastConnection.sendCommand(now.toString)
+    Thread::sleep(100)
     //s.state.toString + " logged" not sure what this does
     return resp
 ]
 
 val Functions$Function1<String, String> getTuyaStatus= [ c |
-    //logInfo("lambda", s.state.toString)
+    //if(db) { logInfo("lambda", s.state.toString)
     var njsArg = c
     var tuyaLog = "The Device is online and should receive commands: "
     var id = " "
@@ -53,29 +56,29 @@ val Functions$Function1<String, String> getTuyaStatus= [ c |
     
     //var resp = broadcastString
     var resp = executeCommandLine("python /etc/openhab2/scripts/njstuyamonitor.py " + c, 5000)
-    logInfo("Tuya", "New broadcast {} for {} with resp {}", broadcastString, njsArg, resp)  
+    if(db) { logInfo("Tuya", "New broadcast {} for {} with resp {}", broadcastString, njsArg, resp)  }
     if (resp.contains(id)) {
         //var tmpRexp = '.*(/s{[0-9a-zA-Z\\. \\-]* 012001865ccf7f597c1b [0-9a-zA-Z\\. \\-]*}).*'
         var tmpRexp = '.*(\\s[0-9A-Za-z\\- \\.]*' + id + '[0-9A-Za-z\\- \\.]*}).*'
         resp = transform("REGEX",tmpRexp, broadcastString)
-        logInfo("Tuya", "ID found {} for resp {}", id, resp)  
+        if(db) { logInfo("Tuya", "ID found {} for resp {}", id, resp)  }
     }
     
     //otherwise the ip/id is passed and the function reutrn as soon as it sees that device online. its faster.
     //could set up poll every min or so rather than before each action to make more responsive.
     //var resp = BroadcastState.state.toString
     if( resp.contains("Error") ){
-        logInfo("Tuya", "Error getting devices [{}]", resp)
+        if(db) { logInfo("Tuya", "Error getting devices [{}]", resp)}
         return "Error"
     }
     
     
     if( ! resp.contains("-ip") ){
-        logInfo("Tuya", "Error getting devices with ip or id of [{}] \n response was [{}]", c, resp)
+        if(db) { logInfo("Tuya", "Error getting devices with ip or id of [{}] \n response was [{}]", c, resp)}
         return "Error" 
     }
     else{
-        logInfo("Tuya", "{} \n {}", tuyaLog, resp.replace('},', '},\n') )     
+        if(db) { logInfo("Tuya", "{} \n {}", tuyaLog, resp.replace('},', '},\n') )  }   
     }
     
     return resp;
@@ -91,30 +94,30 @@ then
 
         if (! LivingRoomHeaterDetails.state.toString.contains("key"))
         {
-            logInfo("tuya", "no config info found running config")
+            if(db) { logInfo("tuya", "no config info found running config")}
             tuya_config.sendCommand("config")
         }
         //var resp = getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString)
         var resp = "FINE"
         if ( ! resp.contains("Error") ){
-            logInfo("Tuya", "Should action command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+            if(db) { logInfo("Tuya", "Should action command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        }
             tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
         }
         else {
-            logInfo("Tuya", "Device was not sending availability messages: trying again")
+            if(db) { logInfo("Tuya", "Device was not sending availability messages: trying again")}
             Thread::sleep(1000)
             resp = getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString)   
-            logInfo("Tuya", "Trying again to get avilability state")   
+            if(db) { logInfo("Tuya", "Trying again to get avilability state")   }
             Thread::sleep(1000)
             tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
         }
-        logInfo("Tuya", "Normal {} Bad {}", ldtuya, ldtuyaBad)
+        if(db) { logInfo("Tuya", "Normal {} Bad {}", ldtuya, ldtuyaBad)}
         if(LivingRoomHeater.state.toString.contains("UNDEF")){
             Thread::sleep(1000)
             //tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " REFRESHSTATE") 
         }
     } finally{
-        logInfo("tuya", "cron living room unlock")
+        if(db) { logInfo("tuya", "cron living room unlock")}
         locktuya.unlock()
     }
    
@@ -129,9 +132,9 @@ then
     locktuya.lock()
     try {
         var tuyaDevices = getTuyaStatus.apply(receivedCommand.toString)  
-        logInfo("Tuya", "Here are the live tuya devices on your Network:  \n {}",  tuyaDevices.replace('*|*', "\n") )  
+        if(db) { logInfo("Tuya", "Here are the live tuya devices on your Network:  \n {}",  tuyaDevices.replace('*|*', "\n") )  }
     } finally{
-        logInfo("tuya", "cron get live devices unlock")
+        if(db) { logInfo("tuya", "cron get live devices unlock")}
         locktuya.unlock()
     }
   
@@ -146,13 +149,13 @@ then
     try {
         if (! BedroomHeaterDetails.state.toString.contains("key"))
         {
-            logInfo("tuya", "no config info found running config")
+            if(db) { logInfo("tuya", "no config info found running config")}
             tuya_config.sendCommand("config")
         }        
-        logInfo("Tuya", "Should run command as {}", BedroomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+        if(db) { logInfo("Tuya", "Should run command as {}", BedroomHeaterDetails.state.toString + " " + receivedCommand.toString)        }
         tuyaAction.apply(BedroomHeater, BedroomHeaterDetails.state.toString + " " + receivedCommand.toString) 
     } finally{
-        logInfo("tuya", "cron bedroom unlock")
+        if(db) { logInfo("tuya", "cron bedroom unlock")}
         locktuya.unlock()
     }
 
@@ -163,7 +166,7 @@ rule "Switch heater"
 when 
     Item LivingRoomHeater received command
 then
-    logInfo("LivingRoomHeater change", "turning heater to {}", receivedCommand) 
+    if(db) { logInfo("LivingRoomHeater change", "turning heater to {}", receivedCommand) }
     if ( LivingRoomHeater.state.toString.toLowerCase.contains("on")) {
         LivingRoomHeaterCommand.sendCommand("ON")
     }
@@ -178,15 +181,16 @@ when
     or
     Item KitchenThermostatTargetTemp changed
 then
+
     if ( (KitchenThermostatCurrentTemp.state as Number) < (KitchenThermostatTargetTemp.state as Number) ) {
-        logInfo("Thermostat", "turning on heating from state {} to increase from {} to {}", LivingRoomHeater ,KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
+        if(db) { logInfo("Thermostat", "turning on heating from state {} to increase from {} to {}", LivingRoomHeater ,KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)}
         if( LivingRoomHeater.state != ON){
             LivingRoomHeaterCommand.sendCommand("ON")
         }
         
     }
     else{
-        logInfo("Thermostat", "turning off heating to decrease from from {} to {}", KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
+        if(db) { logInfo("Thermostat", "turning off heating to decrease from from {} to {}", KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)}
         if( LivingRoomHeater.state != OFF){
             LivingRoomHeaterCommand.sendCommand("OFF")
         }
@@ -201,8 +205,13 @@ when
 then
     //CRON only needs to run when unlocked no need to stack updates over other commands
     if(!locktuya.isLocked()){
-        LivingRoomHeaterCommand.sendCommand("STATUS")
-        BedroomHeaterCommand.sendCommand("STATUS")
+        var titerator = gTuya.members.iterator
+        while(titerator.hasNext){
+            val det = titerator.next
+            if(db) { logInfo("Tuya", "Update [{}]", det)}
+            sendCommand(det.name + "Command", "STATUS")
+        }
+
     }
 
 end
@@ -211,7 +220,7 @@ rule "Update Thermostat Value"
 when
     Item HueKitchenTemp changed
 then
-    logInfo("Thermostat", "update kitchen temp {}", HueKitchenTemp)
+    if(db) { logInfo("Thermostat", "update kitchen temp {}", HueKitchenTemp)}
     KitchenThermostatCurrentTemp.postUpdate(Float::parseFloat(String::format("%s",HueKitchenTemp.state).replace(' ','')))
 end
 /*
@@ -219,13 +228,13 @@ rule "cron Updates Broadcast"
 when
     Time cron "13 0/5 * * * ?"
 then
-    logInfo("Cron Tuya", "Broadcast update start")
+    if(db) { logInfo("Cron Tuya", "Broadcast update start")
     var resp = executeCommandLine("python /etc/openhab2/scripts/njstuyamonitor.py ", 5000)
     if( ! BroadcastState.state.toString.contains("error"))
     {
         BroadcastState.sendCommand(resp)
     }     
-    logInfo("Cron Tuya", "Broadcast update {}, from {}", BroadcastState.state, resp)
+    if(db) { logInfo("Cron Tuya", "Broadcast update {}, from {}", BroadcastState.state, resp)
 end
 */
 /*
@@ -238,12 +247,12 @@ when
     Item gTuya changed
 then
 
-    logInfo("Tuya", "UNDEF ITEM [{}]", gTuya)
+    if(db) { logInfo("Tuya", "UNDEF ITEM [{}]", gTuya)}
     var titerator = gTuya.members.iterator
     while(titerator.hasNext){
         val det = titerator.next
         if( det.state.toString.contains("UNDEF")){
-            logInfo("Tuya", "UNDEF ITEM [{}]", det)
+            if(db) { logInfo("Tuya", "UNDEF ITEM [{}]", det)}
             sendCommand(det.name + "Command", "REFRESH")
         }
     }
@@ -260,7 +269,7 @@ then
     var stateList = newArrayList()
     try {
         var resp = executeCommandLine("python /etc/openhab2/scripts/njstuyamonitor.py ", 50000)
-        logInfo("Tuya", "Manualt update {}, from {}", BroadcastState.state, resp)
+        if(db) { logInfo("Tuya", "Manualt update {}, from {}", BroadcastState.state, resp)}
         if( ! resp.contains("Devices")){
 
         }
@@ -284,26 +293,26 @@ then
                         val det = titerator.next
                         if( det.state.toString.contains(id)){
                             stateList.add(det.getLabel)
-                            logInfo("Tuya", " update state for id {}, ip {}, item {}", id, ip, det.getLabel)
+                            if(db) { logInfo("Tuya", " update state for id {}, ip {}, item {}", id, ip, det.getLabel)}
                             val endit = titerator.last
                         }
                     }
                 }
             }
 
-            logInfo("Tuya", "Manual update id : [{}] ip: [{}] from resp {}", idList, ipList, resp)
+            if(db) { logInfo("Tuya", "Manual update id : [{}] ip: [{}] from resp {}", idList, ipList, resp)}
 
 
         }
 
         
     } finally{
-        logInfo("tuya", "cron manual unlock")
+        if(db) { logInfo("tuya", "cron manual unlock")}
         locktuya.unlock()
     } 
     stateList.forEach [ str |
         sendCommand(str, "STATE")
-        logInfo("Tuya", " update list done {}",str)
+        //if(db) { logInfo("Tuya", " update list done {}",str)
     ]      
     //LivingRoomHeaterCommand.sendCommand("STATUS")
    //BedroomHeaterCommand.sendCommand("STATUS")
@@ -316,7 +325,7 @@ rule "cron Updates Status"
     when
         Time cron "0/10 * * * * ?"
     then
-         logInfo("Thermostat cron", "cron {}", now.millis)
+         if(db) { logInfo("Thermostat cron", "cron {}", now.millis)
 
         var cprog =  now.millis  - 
 
@@ -328,14 +337,14 @@ rule "cron Updates Status"
             }
 
             if( cprog > Integer::parseInt(spotify_current_duration.state.toString)){
-                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                if(db) { logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
                 cprog=1
                 spotify_current_progress.sendCommand("1")
-                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                if(db) { logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
                 postUpdate(spotify_current_update_time, now.toString)
-                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                if(db) { logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
                 sendCommand(spotify_forceupadte,ON)
-                logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
+                if(db) { logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
                     
             }
             else{
@@ -357,20 +366,20 @@ rule "Switch Living room Action"
     while (loopNumber>0){
         if (! LivingRoomHeaterDetails.state.toString.contains("key"))
         {
-            logInfo("tuya", "no config info found running config")
+            if(db) { logInfo("tuya", "no config info found running config")
             tuya_config.sendCommand("config")
         }
         if ( getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString).contains("-ip") ){
-            logInfo("Tuya", "Should run command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        
+            if(db) { logInfo("Tuya", "Should run command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        
             tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
         }
         else {
-            logInfo("Tuya", "Device was not sending availability messages")   
+            if(db) { logInfo("Tuya", "Device was not sending availability messages")   
         }
         if ( getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString).contains("UNDEF") ) {
             
             Thread::sleep(TUYA_DELAY + 5000 * (RETRIES -loopNumber))
-            logInfo("Tuya", "Loop number {}",loopNumber)
+            if(db) { logInfo("Tuya", "Loop number {}",loopNumber)
         } 
         else {
             loopNumber = 0

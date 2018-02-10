@@ -66,11 +66,17 @@ tuya.resolveIds().then(() => {
                     console.log(bmap(!newState));
                 }
                 return;
+            }, reason => {
+                console.log(reason.toString());
+                return;
             });
         } else {
             console.log(bmap(status));
             return;
         }
 
+    }, reason => {
+        console.log(reason.toString());
+        return;
     });
 });
