@@ -5,6 +5,21 @@ var ldtuyaBad = 0
 val ReentrantLock locktuya  = new ReentrantLock()
 var _DEBUG = true
 var db = true
+/*
+Use the following to config items holding the id and key of device
+send command to tuya_config to apply values to items. 
+var LivingRoomHeaterDetailsConfig = "-ip 192.168.x.y -id 0123123sdfdf312312f -key 13mfdkj32lj213"
+var BedroomHeaterDetailsConfig = "-ip 192.168.x.z -id 324132dsasad21213123 -key sdfsdf32wdedewd"
+
+rule "TuyaConfig"
+    when
+		Item tuya_config received command
+	then
+    LivingRoomHeaterDetails.sendCommand(LivingRoomHeaterDetailsConfig)
+    BedroomHeaterDetails.sendCommand(BedroomHeaterDetailsConfig)
+    logInfo("tuya config Living room {} and heater {}", LivingRoomHeaterDetails.state.toString, BedroomHeaterDetails.state.toString)
+end
+*/
 val Functions$Function2<String, String, String> tuyaExec= [ c, r |
     if(db) { logInfo("Tuya", "Execute [{}] ", c)}
 
