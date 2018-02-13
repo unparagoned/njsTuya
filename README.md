@@ -9,6 +9,7 @@ Install tuyapi from the same folder that the njsTuya.js is in
 cd /etc/openhab2/scripts
 npm install codetheweb/tuyapi
 ```
+Ignore the Warnings. If it's run in the same folder as the njsTuya.js script it should have installed fine.(You can run npm init --yes before hand to reduce the number of warnings if you are of that type)
 
 Then you need to download this project and place the files in the correct location. I have a seperate git folder and rsync the relevent files, since I have my main openhab in it's own git.
 But for this you can just 
