@@ -6,7 +6,7 @@ import sys
 import os
 import errno
 import datetime
-
+from timeout import timeout
 
 _DEBUG = False
 dp = _DEBUG
@@ -21,6 +21,7 @@ ppid = str(os.getpid())
 pidfile = "/tmp/njsmon.pid"
 
 
+@timeout(2, os.strerror(errno.ETIMEDOUT))
 def pid_exists(pid):
     """Check whether pid exists in the current process table.
     UNIX only.
@@ -73,6 +74,7 @@ fw.close()
 
 #    file(pidfile, 'w').write(ppid)
 # Do some actual work here
+
 try:
     if (dp): print("doing something start")
     if (dp): print ("argCommand: %s" % argCommand)
@@ -88,6 +90,7 @@ try:
             watchId = argCommand.strip()
     if (dp): print ("watchIP: %s and watchId: %s" % (watchIp, watchId))
     s = socket(AF_INET, SOCK_DGRAM)
+    s.settimeout(18.0)
     s.bind(('', 6666))
     #user for loop just in case errors create infinite loops
     #Also go through twice incase timing error or device is slow
