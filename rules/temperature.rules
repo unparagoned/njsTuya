@@ -2,6 +2,7 @@ import org.eclipse.xtext.xbase.lib.Functions
 import java.util.concurrent.locks.ReentrantLock
 var ldtuya = 0
 var ldtuyaBad = 0
+var ldtuyaBadRow = 0
 val ReentrantLock locktuya  = new ReentrantLock()
 var _DEBUG = true
 var db = true
@@ -37,18 +38,34 @@ val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
     var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 50000)
     // var resp = tuyaExec.apply(intString, "rand")
     logInfo("Tuya", "Execute action [{}] : resp [{}]", c, resp)
-    if(resp.contains("Error") || resp.contains("Warning")){
+    if(ldtuyaBadRow == null){ ldtuyaBadRow=0}
+    if(resp === null){
         s.postUpdate("UNDEF")
         gTuya.postUpdate("UNDEF")
         ldtuyaBad = ldtuyaBad + 1
+        ldtuyaBadRow = ldtuyaBadRow +1 
+    }
+    if(resp.contains("Error") || resp.contains("Warning") || resp.length < 2){
+        s.postUpdate("UNDEF")
+        gTuya.postUpdate("UNDEF")
+        ldtuyaBad = ldtuyaBad + 1
+        ldtuyaBadRow = ldtuyaBadRow +1 
     }
     else
     {
         s.postUpdate(resp)
         ldtuya = ldtuya + 1
+        ldtuyaBadRow = 0
     }
+
     tuya_lastConnection.sendCommand(now.toString)
     Thread::sleep(100)
+    if(ldtuyaBadRow / 6 > 1){
+        TuyaTimeout.sendCommand(now.plusMinutes(ldtuyaBadRow).toString);
+        Thread::sleep( ldtuyaBadRow * 60 * 1000 );
+        //The parent function should have a lock on as well
+    }
+    
     //s.state.toString + " logged" not sure what this does
     return resp
 ]
@@ -82,11 +99,14 @@ val Functions$Function1<String, String> getTuyaStatus= [ c |
     //otherwise the ip/id is passed and the function reutrn as soon as it sees that device online. its faster.
     //could set up poll every min or so rather than before each action to make more responsive.
     //var resp = BroadcastState.state.toString
-    if( resp.contains("Error") ){
+    if(resp == NULL || resp == ""){
         if(db) { logInfo("Tuya", "Error getting devices [{}]", resp)}
         return "Error"
     }
-    
+    if( resp.contains("Error") ){
+        if(db) { logInfo("Tuya", "Error getting devices [{}]", resp)}
+        return "Error"
+    }  
     
     if( ! resp.contains("-ip") ){
         if(db) { logInfo("Tuya", "Error getting devices with ip or id of [{}] \n response was [{}]", c, resp)}
@@ -146,8 +166,10 @@ when
 then
     locktuya.lock()
     try {
-        var tuyaDevices = getTuyaStatus.apply(receivedCommand.toString)  
-        if(db) { logInfo("Tuya", "Here are the live tuya devices on your Network:  \n {}",  tuyaDevices.replace('*|*', "\n") )  }
+        if(now.isAfter(new DateTime(TuyaTimeout.state.toString))){
+            var tuyaDevices = getTuyaStatus.apply(receivedCommand.toString)  
+            if(db) { logInfo("Tuya", "Here are the live tuya devices on your Network:  \n {}",  tuyaDevices.replace('*|*', "\n") )  }
+        }
     } finally{
         if(db) { logInfo("tuya", "cron get live devices unlock")}
         locktuya.unlock()
@@ -216,7 +238,7 @@ end
 
 rule "cron Guard"
 when
-    Time cron "13 0/1 * * * ?"
+    Time cron "13 0/2 * * * ?"
 then
     //CRON only needs to run when unlocked no need to stack updates over other commands
     if(!locktuya.isLocked()){

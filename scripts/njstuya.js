@@ -37,6 +37,32 @@ function bmap(istate) {
 var newState = false;
 var changeState = false;
 
+if (args.includes("NOW")) {
+    if (db) {
+        console.log('ON NOW')
+    }
+    if (args.includes("OW")) {
+        newState = true;
+        changeState = true;
+    }
+    if (args.includes("OFF")) {
+        newState = false;
+        changeState = true;
+    }
+    tuya.set({ set: newState }).then(result => {
+        if (db) { console.log('Result of setting status to ' + newState + ': ' + result); }
+        if (result) {
+            console.log(bmap(newState));
+        } else {
+            //this sounds more like an error than just a fail.
+            console.log(bmap(!newState));
+        }
+        return;
+    }, reason => {
+        console.log(reason.toString());
+        return;
+    });
+}
 
 tuya.resolveIds().then(() => {
     tuya.get().then(status => {
