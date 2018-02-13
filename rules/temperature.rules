@@ -358,7 +358,7 @@ rule "cron Updates Status"
                 if(db) { logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
                 postUpdate(spotify_current_update_time, now.toString)
                 if(db) { logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
-                sendCommand(spotify_forceupadte,ON)
+                sendCommand(spotify_forceupdate,ON)
                 if(db) { logInfo("spotify", "new song cprog{} and duration {}", cprog, spotify_current_update_time.state)
                     
             }
