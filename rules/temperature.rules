@@ -31,21 +31,29 @@ val Functions$Function2<String, String, String> tuyaExec= [ c, r |
 val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
     //if(db) { logInfo("lambda", s.state.toString)
 
-    var intString = c
+    //var intString = c
     if(db) {logInfo("Tuya", "Execute action [{}] ", c)}
     //problem with script so cant get respoinse directly
     Thread::sleep(10)
     var resp = executeCommandLine("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + c, 50000)
     // var resp = tuyaExec.apply(intString, "rand")
     logInfo("Tuya", "Execute action [{}] : resp [{}]", c, resp)
-    if(ldtuyaBadRow == null){ ldtuyaBadRow=0}
+    logInfo("Tuya", "Straight after [{}] ", resp)  
+    /*this check doesnt work and exits early 
+    if(ldtuyaBadRow == null){ 
+        ldtuyaBadRow = 0
+    }
+    */
+    logInfo("Tuya", "Before check [{}] ", resp)  
     if(resp === null){
+        logInfo("Tuya", "Error in response wich is null")
         s.postUpdate("UNDEF")
         gTuya.postUpdate("UNDEF")
         ldtuyaBad = ldtuyaBad + 1
         ldtuyaBadRow = ldtuyaBadRow +1 
     }
-    if(resp.contains("Error") || resp.contains("Warning") || resp.length < 2){
+    else if(resp.contains("Error") || resp.contains("Warning") || resp.length < 2){
+        logInfo("Tuya", "Error in response [{}] ", resp)
         s.postUpdate("UNDEF")
         gTuya.postUpdate("UNDEF")
         ldtuyaBad = ldtuyaBad + 1
@@ -53,6 +61,7 @@ val Functions$Function2<GenericItem, String, String> tuyaAction= [ s, c |
     }
     else
     {
+        logInfo("Tuya", "Updating state [{}] ", resp)   
         s.postUpdate(resp)
         ldtuya = ldtuya + 1
         ldtuyaBadRow = 0
@@ -302,7 +311,7 @@ then
     locktuya.lock()
     var idList = newArrayList()
     var ipList = newArrayList()
-    var keyList = newArrayList()
+    //var keyList = newArrayList()
     var stateList = newArrayList()
     try {
         var resp = executeCommandLine("python /etc/openhab2/scripts/njstuyamonitor.py ", 50000)
@@ -331,7 +340,7 @@ then
                         if( det.state.toString.contains(id)){
                             stateList.add(det.getLabel)
                             if(db) { logInfo("Tuya", " update state for id {}, ip {}, item {}", id, ip, det.getLabel)}
-                            val endit = titerator.last
+                            //val endit = titerator.last
                         }
                     }
                 }
