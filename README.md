@@ -4,9 +4,22 @@ Openhab interface for Tuya home automation devices sold under various names This
 ## Instructions:
 
 Install tuyapi from the same folder that the njsTuya.js is in
-
+```
 cd /etc/openhab2/scripts
 npm install codetheweb/tuyapi
+```
+The following shouldn't be necessary but might be if you have old version of node and don't have timeout. 
+
+```
+#update node if you have an old version and have problems
+sudo npm cache clean -f
+sudo npm install -g n
+sudo n stable
+
+sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/nodejs
+#install timout if you get errors about timeout
+pip install timeout
+```
 Ignore the Warnings. If it's run in the same folder as the njsTuya.js script it should have installed fine.(You can run npm init --yes before hand to reduce the number of warnings if you are of that type)
 
 Then you need to download this project and place the files in the correct location. I have a seperate git folder and rsync the relevent files, since I have my main openhab in it's own git. But for this you can just copy the njstuya.js file from the scripts folder into your openhab2.scrips folder You can also look at the items and rules files for a working setup.
@@ -21,11 +34,11 @@ There are some reliability issues with tuyapi. Latest changes changed the syntax
 ## Habpanel
 Here is hw you would use a slider in habpanel to change the set temp.
 
-
+```
 <div class="name">Set Target Temp: {{itemValue('KitchenThermostatTargetTemp')}}</div>
 <div ng-init="slider = { value: itemValue('KitchenThermostatTargetTemp'), options: { floor: 0, ceil: 40, step: 1, showSelectionBar: true } };"></div>
 <rzslider rz-slider-model="slider.value" rz-slider-options="slider.options" ng-click="sendCmd('KitchenThermostatTargetTemp', slider.value)"></rzslider>
-
+```
 ## Useage
 
 The following is an extract from Habpanel which shows how to send commands to the item. 
