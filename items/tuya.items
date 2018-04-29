@@ -1,12 +1,12 @@
 //Tuya items and thermo
 Group gThermoStats
-Group gKitchenThermostat "Kitchen Thermostat" (gThermostats) [ "Thermostat" ]
+Group gKitchenThermostat "Kitchen Thermostat" (gThermostats) //[ "Thermostat" ]
 Group gThermoCommand "Thermo Received Command"
 Group:Switch gTuya "Tuya devices"
 Group gTuyaDetails "Tuya details"
-Number KitchenThermostatCurrentTemp "Kitchen Thermostat Current Temperature" (gKitchenThermostat) [ "CurrentTemperature" ]
-Number KitchenThermostatTargetTemp "Kitchen Thermostat Target Temperature" (gKitchenThermostat) [ "TargetTemperature" ]
-String KitchenThermostatHeatingCoolingMode "Kitchen Thermostat Heating/Cooling Mode" (gKitchenThermostat) [ "homekit:HeatingCoolingMode" ]
+Number KitchenThermostatCurrentTemp "Kitchen Thermostat Current Temperature" (gKitchenThermostat) //[ "CurrentTemperature" ]
+Number KitchenThermostatTargetTemp "Kitchen Thermostat Target Temperature" (gKitchenThermostat) //[ "TargetTemperature" ]
+String KitchenThermostatHeatingCoolingMode "Kitchen Thermostat Heating/Cooling Mode" (gKitchenThermostat) //[ "homekit:HeatingCoolingMode" ]
 //Send Stat, status, avil, etc to  is_tuya_online to get list of ip and keys of devices. 
 //send the ip, id, or full details to quickly see if device is adversitising itself as free.
 String is_tuya_online "Get live tuya devices"
