@@ -3,6 +3,8 @@ Openhab interface for Tuya home automation devices sold under various names This
 
 ## Instructions:
 
+Note. I reccomend that you have the the latest version of openhabian and openhab installed. This will ensure your envirnment is properly set up, python, node, etc. If not you may need to sort all that out yourself. 
+
 Install tuyapi from the same folder that the njsTuya.js is in
 ```
 cd /etc/openhab2/scripts
