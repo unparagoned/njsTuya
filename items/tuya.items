@@ -18,7 +18,7 @@ DateTime tuya_lastConnection "Last Command Time"
 String LivingRoomHeaterDetails "LivingRoomHeaterCommand" (gTuyaDetails)
 String LivingRoomHeaterCommand "Heater Command" (gThermoCommand)
 Switch BedroomHeater	"Heater state"  (gTuya, gSwitch)  [ "Switchable" ]
-DateTime tuya_lastConnection "Last Command Time" 
+
 String BedroomHeaterDetails "BedroomHeaterCommand" (gTuyaDetails)
 String BedroomHeaterCommand "Heater Command" (gThermoCommand)
 String BroadcastState "Broadcast State"
