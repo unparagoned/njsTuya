@@ -1,13 +1,16 @@
-njsTuya
+# njsTuya
 Openhab interface for Tuya home automation devices sold under various names This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
 
-Instructions:
-Install tuyapi from the same folder that the njsTuya.js is in
+## Instructions:
 
+Install tuyapi from the same folder that the njsTuya.js is in
+```
 cd /etc/openhab2/scripts
 npm install codetheweb/tuyapi
-The following shouldn't be necessary but might be if you have old version of node and don't have timeout.
+```
+The following shouldn't be necessary but might be if you have old version of node and don't have timeout. 
 
+```
 #update node if you have an old version and have problems
 sudo npm cache clean -f
 sudo npm install -g n
@@ -16,6 +19,7 @@ sudo n stable
 sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/nodejs
 #install timout if you get errors about timeout
 pip install timeout
+```
 Ignore the Warnings. If it's run in the same folder as the njsTuya.js script it should have installed fine.(You can run npm init --yes before hand to reduce the number of warnings if you are of that type)
 
 Then you need to download this project and place the files in the correct location. I have a seperate git folder and rsync the relevent files, since I have my main openhab in it's own git. But for this you can just copy the njstuya.js file from the scripts folder into your openhab2.scrips folder You can also look at the items and rules files for a working setup.
@@ -24,17 +28,23 @@ You have to create an item with with your devices ip, id and key.(Or if you just
 
 Commands are node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY COMMAND Commands are ON, OFF, TOGGLE, STATE, e.g. node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 ON All commands return the state of the switch.
 
-Issues There are some reliability issues with tuyapi. Latest changes changed the syntax but still getting error maybe at an even higher rate.
+Issues
+There are some reliability issues with tuyapi. Latest changes changed the syntax but still getting error maybe at an even higher rate.
 
-Habpanel
+## Habpanel
 Here is hw you would use a slider in habpanel to change the set temp.
 
+```
 <div class="name">Set Target Temp: {{itemValue('KitchenThermostatTargetTemp')}}</div>
 <div ng-init="slider = { value: itemValue('KitchenThermostatTargetTemp'), options: { floor: 0, ceil: 40, step: 1, showSelectionBar: true } };"></div>
 <rzslider rz-slider-model="slider.value" rz-slider-options="slider.options" ng-click="sendCmd('KitchenThermostatTargetTemp', slider.value)"></rzslider>
-Useage
-The following is an extract from Habpanel which shows how to send commands to the item. Send ON,OFF,TOGGLE to LivingRoomCommand.
+```
+## Useage
 
+The following is an extract from Habpanel which shows how to send commands to the item. 
+Send ON,OFF,TOGGLE to LivingRoomCommand.
+
+```
 <div class="section">
 
 
@@ -82,7 +92,9 @@ The following is an extract from Habpanel which shows how to send commands to th
     </div>
   </div>
 </div>
-Related Projects:
+  ```
+
+## Related Projects:
 https://github.com/clach04/python-tuya
 
 https://github.com/codetheweb/tuyapi
