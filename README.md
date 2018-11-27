@@ -6,7 +6,7 @@ Openhab interface for Tuya home automation devices sold under various names This
 Install tuyapi from the same folder that the njsTuya.js is in
 ```
 cd /etc/openhab2/scripts
-npm install codetheweb/tuyapi@2.0.1
+npm install codetheweb/tuyapi@2.0.3
 ```
 The following shouldn't be necessary but might be if you have old version of node and don't have timeout. 
 
