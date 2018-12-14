@@ -1,0 +1,28 @@
+{
+    "name": "njstuya",
+    "version": "1.0.0",
+    "description": "tuyapi wrapper with openhab support",
+    "main": "njstuya.js",
+    "scripts": {
+        "test": "-ip 192.168.x.x -id 1231204564df -key dsf456sdf TOGGLE"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/unparagoned/njsTuya.git"
+    },
+    "keywords": [
+        "njstuya",
+        "tuya",
+        "openhab",
+        "tuyapi"
+    ],
+    "author": "unparagoned",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/unparagoned/njsTuya/issues"
+    },
+    "homepage": "https://github.com/unparagoned/njsTuya#readme",
+    "dependencies": {
+        "tuyapi": "github:codetheweb/tuyapi"
+    }
+}
