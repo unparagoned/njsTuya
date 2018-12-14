@@ -213,7 +213,7 @@ when
     Item LivingRoomHeater received command
 then
     if(db) { logInfo("LivingRoomHeater change", "turning heater to {}", receivedCommand) }
-    if ( LivingRoomHeater.state.toString.toLowerCase.contains("on")) {
+    if (receivedCommand.toString.toLowerCase.contains("on")) {
         LivingRoomHeaterCommand.sendCommand("ON")
     }
     else {
