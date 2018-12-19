@@ -8,6 +8,8 @@ Install tuyapi from the same folder that the njsTuya.js is in
 cd /etc/openhab2/scripts
 npm install codetheweb/tuyapi
 ```
+Then just copy njstuya.js into your scripts fodler, and the rules and items into the appropriate folders in /etc/openhab2/
+
 The following shouldn't be necessary but might be if you have old version of node and don't have timeout. 
 
 ```
@@ -27,6 +29,13 @@ Then you need to download this project and place the files in the correct locati
 You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection. Instructions can be found here: https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md
 
 Commands are node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY COMMAND Commands are ON, OFF, TOGGLE, STATE, e.g. node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 ON All commands return the state of the switch.
+
+Added support for arbituary set commands 
+node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set SETCOMMAND
+SETCOMMAND should be of the following format, including quote marks "{dps:0, set:true}" 
+
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set "{dps:0, set:true}" 
+You may need to play about with the dps if you have multiple function for your device.
 
 Issues
 There are some reliability issues with tuyapi. Latest changes changed the syntax but still getting error maybe at an even higher rate.
