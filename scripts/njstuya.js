@@ -1,8 +1,10 @@
 /* 
  * Simple wrapper for tuyapi for use with openhab or command line
+ Added support for more devices through set command
 npm install codetheweb/tuyapi
 node ohtuya.js args 
 arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf TOGGLE
+arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set "{dps: 0, set:true}"
 args can be, ON, OFF, or TOGGLE. No arguement returns state
 @todo set up js to log properly, sending to console messes up output.
 @todo limit connection frequency seem to get connection errors
@@ -17,12 +19,19 @@ var db = _DEBUG;
 function getArgs(allArgs, argName) {
     var nameIndex = allArgs.indexOf(argName);
     argValue = allArgs[nameIndex + 1];
+    argValue = argValue.replace(/"/g,"");
     //console.log(argName + " value is: " + argValue)
     return argValue;
 }
 var tuyaIP = getArgs(args, "-ip");
 var tuyaID = getArgs(args, "-id");
 var tuyaKey = getArgs(args, "-key");
+var tuyaSet = getArgs(args, "-set");
+
+if(args.includes("debug")) {
+    db=true;
+    console.log("debug enabled");
+}
 var tuya = new TuyaDevice({
     //   type: 'outlet',
     //   ip: tuyaIP,
@@ -64,11 +73,10 @@ if (args.includes("NOW")) {
     });
 }
 
-tuya.resolveIds().then(() => {
+tuya.resolveId().then(() => {
     tuya.get().then(status => {
         if (db) { console.log('Status: ' + status); }
         newState = status;
-
         if (args.includes("ON")) {
             newState = true;
             changeState = true;
@@ -81,10 +89,15 @@ tuya.resolveIds().then(() => {
             newState = !status;
             changeState = true;
         }
-
+        setState={ set: newState };
+        if(tuyaSet.length >0) {
+            setState = tuyaSet;
+            changeState = true;
+        }
+        if(db) console.log("new state:" + newState);
         if (changeState) {
-            tuya.set({ set: newState }).then(result => {
-                if (db) { console.log('Result of setting status to ' + newState + ': ' + result); }
+            tuya.set(setState).then(result => {
+                if (db) { console.log('Result of setting status to ' + setState + ': ' + result); }
                 if (result) {
                     console.log(bmap(newState));
                 } else {
