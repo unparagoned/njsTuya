@@ -2,7 +2,24 @@
 Openhab interface for Tuya home automation devices sold under various names This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
 
 ## Instructions:
+If you have npm,node installed it should be simpple
+```cd /etc/openhab2/scripts 
+sudo npm install unparagoned/njsTuya
+```
+Then copy the files from node_modules/njstuya to the appropriate folders.
+```
+njsTuya.js in scripts
+items in items and rules in rules
+```
+Try running node njstuya.js, you should get an error 
 
+# Node installation 
+```
+# Using Ubuntu
+curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+Alternative install instructions
 Install tuyapi from the same folder that the njsTuya.js is in
 ```
 cd /etc/openhab2/scripts
@@ -26,6 +43,8 @@ Ignore the Warnings. If it's run in the same folder as the njsTuya.js script it 
 
 Then you need to download this project and place the files in the correct location. I have a seperate git folder and rsync the relevent files, since I have my main openhab in it's own git. But for this you can just copy the njstuya.js file from the scripts folder into your openhab2.scrips folder You can also look at the items and rules files for a working setup.
 
+
+## Configuration
 You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection. Instructions can be found here: https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md
 
 Commands are node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY COMMAND Commands are ON, OFF, TOGGLE, STATE, e.g. node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 ON All commands return the state of the switch.
