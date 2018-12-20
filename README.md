@@ -51,9 +51,9 @@ Commands are node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY COMMAND Co
 
 Added support for arbituary set commands 
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set SETCOMMAND
-SETCOMMAND should be of the following format, including quote marks "{dps:0, set:true}" 
+SETCOMMAND should be of the following format, including quote marks '{ "dps": 1, "set": true }' 
 
-node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set "{dps:0, set:true}" 
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{ "dps":1, "set": true }' 
 You may need to play about with the dps if you have multiple function for your device.
 
 Issues
