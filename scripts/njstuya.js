@@ -4,7 +4,7 @@
 npm install codetheweb/tuyapi
 node ohtuya.js args 
 arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf TOGGLE
-arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set "{dps: 0, set:true}"
+arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set '{ "dps": 0, "set": true }'
 args can be, ON, OFF, or TOGGLE. No arguement returns state
 @todo set up js to log properly, sending to console messes up output.
 @todo limit connection frequency seem to get connection errors
@@ -18,9 +18,12 @@ var db = _DEBUG;
 
 function getArgs(allArgs, argName) {
     var nameIndex = allArgs.indexOf(argName);
-    argValue = allArgs[nameIndex + 1];
-    argValue = argValue.replace(/"/g,"");
-    //console.log(argName + " value is: " + argValue)
+    var argValue="";
+    if(nameIndex>=0){
+        argValue = allArgs[nameIndex + 1];
+        argValue = argValue.replace(/'/g,"");
+        //console.log(argName + " value is: " + argValue)
+    }
     return argValue;
 }
 var tuyaIP = getArgs(args, "-ip");
@@ -41,6 +44,10 @@ var tuya = new TuyaDevice({
 
 function bmap(istate) {
     return istate ? 'ON' : "OFF";
+}
+function getState(setString) {
+    if(setString.includes("true")) return true;
+    return false;
 }
 
 var newState = false;
@@ -91,13 +98,14 @@ tuya.resolveId().then(() => {
         }
         setState={ set: newState };
         if(tuyaSet.length >0) {
-            setState = tuyaSet;
+            newState=getState(tuyaSet);
+            setState = JSON.parse(tuyaSet);
             changeState = true;
         }
-        if(db) console.log("new state:" + newState);
+        if(db) console.log("new state:" + JSON.stringify(setState));
         if (changeState) {
             tuya.set(setState).then(result => {
-                if (db) { console.log('Result of setting status to ' + setState + ': ' + result); }
+                if (db) { console.log('Result of setting status to ' + JSON.stringify(setState) + ': ' + result); }
                 if (result) {
                     console.log(bmap(newState));
                 } else {
