@@ -43,8 +43,7 @@ The following shouldn't be necessary but might be if you have old version of nod
 ```
 #update node if you have an old version and have problems
 sudo npm cache clean -f
-sudo npm install -g n
-sudo n stable
+sudo npm install npm@latest -g
 
 sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/nodejs
 #install timout if you get errors about timeout
