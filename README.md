@@ -13,8 +13,8 @@ sudo npm install unparagoned/njsTuya
 Then copy the files to Openhab configuration directories:
 ```
 cp node_modules/njstuya/scripts/* $openhab/scripts
-cp nodemodules/njstuya/items/* $openhab/items/
-cp nodemodules/njstuya/rules/* $openhab/rules/
+cp node_modules/njstuya/items/* $openhab/items/
+cp node_modules/njstuya/rules/* $openhab/rules/
 ```
 
 Try running
