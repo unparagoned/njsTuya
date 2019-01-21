@@ -1,4 +1,6 @@
 #Gets List of devices on network
+# python njsmonitor.py options
+# -v for verbose
 from __future__ import print_function
 import re
 from socket import *
@@ -7,6 +9,7 @@ import os
 import errno
 import datetime
 from timeout import timeout
+import subprocess
 
 _DEBUG = False
 dp = _DEBUG
@@ -17,6 +20,10 @@ watchId = "NOIDMATCH"
 idMatch = ""
 ipMatch = ""
 ipMatch = re.match('.*ip ([0-9\.]*).*', argCommand)
+silent = True
+if "-v" in argCommand:
+    silent = False
+
 ppid = str(os.getpid())
 pidfile = "/tmp/njsmon.pid"
 
@@ -63,20 +70,21 @@ if os.path.isfile(pidfile):
     if(dp): print("Warning: Pidfile exists %s deleting" % (pidfile))
     # checks pid anyway
 
-
 #errors out checking pid anyway
 fw = open(pidfile, "w")
 fw.write(ppid)
 fw.close()
 
-#file(pidfile, 'w').write(ppid)
-#run inside try to stop error stopping process early
-
-#    file(pidfile, 'w').write(ppid)
-# Do some actual work here
+def getState(device):
+    try:
+        output = subprocess.check_output("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + device, shell=True, stderr=subprocess.STDOUT)
+    except:
+        output = "ERROR njstuya.js missing or can't connect to device"
+        pass
+    return output
 
 try:
-    if (dp): print("doing something start")
+    if not silent: print("Scnanning network for decices: Please wait")
     if (dp): print ("argCommand: %s" % argCommand)
     if ipMatch:
         watchIp = ipMatch.group(1)
@@ -98,7 +106,7 @@ try:
     detection_loops = 2
     for cvar in range(0, 255):
         m = s.recvfrom(1024)
-        if(dp): print (' Devices on network details:\n%s' % m[0])
+        if(not silent): print (' Devices on network details:\n%s' % m[0])
         ipi = re.match('.*"ip":"(.+?)"."gwId":"(.+?)".*', m[0])
         if ipi:
             if(dp): print (datetime.datetime.now())
@@ -113,16 +121,17 @@ try:
                 if (dp): print("Match ip or id")
                 break
         else:
-    #        print "no ip found"
             print ("Error no ip found %s" % m[0])
             break
         if detection_loops < 1:
             break
-
-    #    print 'Extracted IP: %s\n' % ip
+    s.close()
+    if not silent: print("Getting device states")
     print("{ Devices: [ ", end=" ")
     for (i, j) in var_list:
-        print(" { -ip %s -id %s -key " % (i, j), end=" },")
+        devDetails="-ip " + i + " -id " + j
+        output = getState(devDetails)
+        print(" \n{ %s -status: %s" % (devDetails, output), end=" },")
     print('\b ] }')
 
 finally:
