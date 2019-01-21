@@ -57,23 +57,24 @@ def pid_exists(pid):
     else:
         return True
 
-#file can become read only and cause problems
-if os.path.isfile(pidfile):
-    f = open(pidfile, "r")
-    for line in f:
-        lineInt = int(line)
-        #print("line %s int %d" % (line, lineInt))
-        if(pid_exists(lineInt)):           
-            print("Error: Process is already runnign %s already exists, exiting" % (pidfile))
-            sys.exit()
-    f.close()
-    if(dp): print("Warning: Pidfile exists %s deleting" % (pidfile))
-    # checks pid anyway
-
-#errors out checking pid anyway
-fw = open(pidfile, "w")
-fw.write(ppid)
-fw.close()
+#only on linux
+if os.name != 'nt':
+    #file can become read only and cause problems
+    if os.path.isfile(pidfile):
+        f = open(pidfile, "r")
+        for line in f:
+            lineInt = int(line)
+            #print("line %s int %d" % (line, lineInt))
+            if(pid_exists(lineInt)):           
+                print("Error: Process is already runnign %s already exists, exiting" % (pidfile))
+                sys.exit()
+        f.close()
+        if(dp): print("Warning: Pidfile exists %s deleting" % (pidfile))
+        # checks pid anyway
+    #errors out checking pid anyway
+    fw = open(pidfile, "w")
+    fw.write(ppid)
+    fw.close()
 
 def getState(device):
     try:
