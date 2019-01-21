@@ -31,10 +31,16 @@ var tuyaID = getArgs(args, "-id");
 var tuyaKey = getArgs(args, "-key");
 var tuyaSet = getArgs(args, "-set");
 
+if(tuyaKey.length == 0) {
+    tuyaKey="1000000000000000"
+}
+
 if(args.includes("debug")) {
     db=true;
     console.log("debug enabled");
 }
+
+
 var tuya = new TuyaDevice({
     //   type: 'outlet',
     //   ip: tuyaIP,
