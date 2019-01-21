@@ -16,12 +16,18 @@ cp node_modules/njstuya/scripts/* $openhab/scripts
 cp node_modules/njstuya/items/* $openhab/items/
 cp node_modules/njstuya/rules/* $openhab/rules/
 ```
-
 Try running
 ```
 node njstuya.js
+$ ...Error: resolveIds() timed out. Is the device powered on and the ID correct?
 ```
-you should get an error
+you should get an error as above
+
+### Get Devices on network and thier state
+If you have python installed you can find all devices on your network and get thier state without having their key.
+```
+python $openhab/scripts/scripts/njstuyamonitor.py -v
+```
 
 # Node installation
 ### using package manager
