@@ -157,6 +157,8 @@ https://github.com/clach04/python-tuya
 
 https://github.com/codetheweb/tuyapi
 
+https://github.com/TheAgentK/tuya-mqtt
+
 https://github.com/Marcus-L/m4rcus.TuyaCore
 
 Specs: https://docs.tuya.com/en/cloudapi/cloud_access.html
