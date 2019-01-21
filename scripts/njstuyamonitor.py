@@ -6,10 +6,11 @@ import re
 from socket import *
 import sys
 import os
+from functools import wraps
 import errno
 import datetime
-from timeout import timeout
 import subprocess
+import signal
 
 _DEBUG = False
 dp = _DEBUG
@@ -26,7 +27,26 @@ if "-v" in argCommand:
 
 ppid = str(os.getpid())
 pidfile = "/tmp/njsmon.pid"
+class TimeoutError(Exception):
+    pass
 
+def timeout(seconds=10, error_message=os.strerror(errno.ETIMEDOUT)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
 
 @timeout(2, os.strerror(errno.ETIMEDOUT))
 def pid_exists(pid):
