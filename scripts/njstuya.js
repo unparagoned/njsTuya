@@ -38,15 +38,21 @@ if(tuyaKey.length == 0) {
 if(args.includes("debug")) {
     db=true;
     console.log("debug enabled");
+    console.log(`ip ${tuyaIP} id ${tuyaID} key ${tuyaKey}`);
+}
+var tuya = new TuyaDevice({
+    id: tuyaID,
+    key: tuyaKey,
+});
+
+if(tuyaIP.length > 4){
+    tuya = new TuyaDevice({
+        id: tuyaID,
+        key: tuyaKey,
+        ip: tuyaIP
+    });
 }
 
-
-var tuya = new TuyaDevice({
-    //   type: 'outlet',
-    //   ip: tuyaIP,
-    id: tuyaID,
-    key: tuyaKey
-});
 
 function bmap(istate) {
     return istate ? 'ON' : "OFF";
@@ -59,20 +65,39 @@ function getState(setString) {
 var newState = false;
 var changeState = false;
 
-if (args.includes("NOW")) {
-    if (db) {
-        console.log('ON NOW')
+function getNewState(retVal, setFun) {
+    if (args.includes("TOGGLE")) {
+        tuya.get().then(status => {
+            if (db) { console.log('Status: ' + status); }
+            retVal= !status;
+            setFun(retVal);
+        }, reason => {
+            console.log(reason.toString());
+            return;
+        });
+    } else if (args.includes("ON")) {
+        retVal=  true;
+        setFun(retVal);
+    } else if (args.includes("OFF")) {
+        retVal=  false;
+        setFun(retVal);
+    } else {
+        retVal=  false;
+        setFun(retVal);
     }
-    if (args.includes("OW")) {
-        newState = true;
-        changeState = true;
+}
+
+
+var setState = function(newState) {
+    setState={ set: newState };
+    if(tuyaSet.length >0) {
+        newState=getState(tuyaSet);
+        setState = JSON.parse(tuyaSet);
     }
-    if (args.includes("OFF")) {
-        newState = false;
-        changeState = true;
-    }
-    tuya.set({ set: newState }).then(result => {
-        if (db) { console.log('Result of setting status to ' + newState + ': ' + result); }
+    if(db) console.log("new state:" + JSON.stringify(setState));
+
+    tuya.set(setState).then(result => {
+        if (db) { console.log('Result of setting status to ' + JSON.stringify(setState) + ': ' + result); }
         if (result) {
             console.log(bmap(newState));
         } else {
@@ -81,55 +106,20 @@ if (args.includes("NOW")) {
         }
         return;
     }, reason => {
-        console.log(reason.toString());
+        console.log(reason.toString() + ' - Try without IP to auto resolve IP');
         return;
     });
 }
 
-tuya.resolveId().then(() => {
-    tuya.get().then(status => {
-        if (db) { console.log('Status: ' + status); }
-        newState = status;
-        if (args.includes("ON")) {
-            newState = true;
-            changeState = true;
-        }
-        if (args.includes("OFF")) {
-            newState = false;
-            changeState = true;
-        }
-        if (args.includes("TOGGLE")) {
-            newState = !status;
-            changeState = true;
-        }
-        setState={ set: newState };
-        if(tuyaSet.length >0) {
-            newState=getState(tuyaSet);
-            setState = JSON.parse(tuyaSet);
-            changeState = true;
-        }
-        if(db) console.log("new state:" + JSON.stringify(setState));
-        if (changeState) {
-            tuya.set(setState).then(result => {
-                if (db) { console.log('Result of setting status to ' + JSON.stringify(setState) + ': ' + result); }
-                if (result) {
-                    console.log(bmap(newState));
-                } else {
-                    //this sounds more like an error than just a fail.
-                    console.log(bmap(!newState));
-                }
-                return;
-            }, reason => {
-                console.log(reason.toString());
-                return;
-            });
-        } else {
-            console.log(bmap(status));
-            return;
-        }
 
-    }, reason => {
-        console.log(reason.toString());
-        return;
+if (tuyaIP.length > 4) {
+    if (db) {
+        console.log('Instant')
+    }
+    getNewState(newState, setState);
+} else {
+    tuya.resolveId().then(() => {
+        if(db) { console.log(`Resolving IP tuyaip is ${tuya.device.ip} and id ${tuya.device.id}`)}       
+        getNewState(newState, setState);
     });
-});
+}
