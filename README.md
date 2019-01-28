@@ -167,4 +167,6 @@ https://github.com/TheAgentK/tuya-mqtt
 
 https://github.com/Marcus-L/m4rcus.TuyaCore
 
+ https://github.com/JamieTemple/tuyasvr
+
 Specs: https://docs.tuya.com/en/cloudapi/cloud_access.html
