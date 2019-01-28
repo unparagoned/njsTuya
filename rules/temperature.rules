@@ -6,7 +6,7 @@ var ldtuyaBadRow = 0
 val ReentrantLock locktuya  = new ReentrantLock()
 var _DEBUG = true
 var db = false
-var Timer timer = null
+var Timer tempTimer = null
 /*
 Use the following to config items holding the id and key of device
 send command to tuya_config to apply values to items. 
@@ -257,18 +257,28 @@ then
     //CRON only needs to run when unlocked no need to stack updates over other commands
     if(!locktuya.isLocked()){
         var titerator = gTuya.members.iterator
-       /* while(titerator.hasNext){
-
-            Thread::sleep(1000)
-        }*/
-
-        timer = createTimer(now, [ |
+        var delay=1
+        while(titerator.hasNext){
+            val det = titerator.next
+            if(db) { logInfo("Tuya", "Update [{}]", det)}
+            createTimer(now.plusMillis(delay), [ |
+                sendCommand(det.name + "Command", "STATUS")
+            ])
+            delay = delay + 1000
+        }
+        /*
+        if (tempTimer !== null) 
+        {
+            tempTimer.cancel
+            tempTimer = null
+        }
+        tempTimer = createTimer(now, [ |
             val det = titerator.next
             if(db) { logInfo("Tuya", "Update [{}]", det)}
             sendCommand(det.name + "Command", "STATUS")
-            if(titerator.hasNext) timer.reschedule(now.plusMillis(1000))
-            else timer = null
-        ])
+            if(titerator.hasNext) tempTimer.reschedule(now.plusMillis(1000))
+            else tempTimer = null
+        ])*/
 
     }
 
