@@ -82,8 +82,14 @@ function getNewState(retVal, setFun) {
         retVal=  false;
         setFun(retVal);
     } else {
-        retVal=  false;
-        setFun(retVal);
+        tuya.get().then(status => {
+            if (db) { console.log('Status: ' + status); }
+            retVal= status;
+            setFun(retVal);
+        }, reason => {
+            console.log(reason.toString());
+            return;
+        });
     }
 }
 
