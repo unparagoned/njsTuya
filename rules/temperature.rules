@@ -7,6 +7,7 @@ val ReentrantLock locktuya  = new ReentrantLock()
 var _DEBUG = true
 var db = false
 var Timer tempTimer = null
+var Timer statusTimer = null
 /*
 Use the following to config items holding the id and key of device
 send command to tuya_config to apply values to items. 
@@ -245,7 +246,11 @@ then
             LivingRoomHeaterCommand.sendCommand("OFF")
         }
     }
-    createTimer(now.plusMillis(50000),  [ | 
+    if (statusTimer !== null) {
+        statusTimer.cancel()
+        statusTimer = null
+    }
+    statusTimer = createTimer(now.plusMillis(500),  [ | 
         LivingRoomHeaterCommand.sendCommand("STATUS")
     ])
 end
