@@ -59,8 +59,29 @@ Ignore the Warnings. If it's run in the same folder as the njsTuya.js script it 
 
 Then you need to download this project and place the files in the correct location. I have a separate git folder and rsync the relevant files, since I have my main openhab in it's own git. But for this you can just copy the njstuya.js file from the scripts folder into your openhab2.scrips folder You can also look at the items and rules files for a working setup.
 
-## Configuration
-You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection. Instructions can be found here: https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md
+## Configuration to obtain private key
+You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection. 
+
+### Android
+1. Install "Package Capture" from play store.
+2. When you first open it it will ask you to install a certificate, this is needed for it to work.
+3. In the top bar there are two "Play" symbols. The one with a 1 allows you to capture packets from certain apps.
+4. Click on that and select "Smart Life" from the list of apps.
+5. It will popup about setting up a vpn and will then start capturing packets.
+6. Open Smart Life and on the screen showing "All Devices" pull down the screen to cause a refresh.
+7. Go back to Packet Capture and hit the Stop button at the top.
+8. You should now have an entry below showing x number of captures.Tap that to open it.
+In mine I had to open the last packet in the list that was marked as SSL.
+9. Scroll down through the first few blocks and you should see a large JSON block
+This contains a lot of code but if you scroll through it you should see line like the ones below 
+
+"devAttribute": 0
+"name": Smart Socket 4"
+"timezoneId": "Europe/London"
+"localKey": "XXXXXXXXXXXXXXX"
+
+### All Other methods
+There are alternative methods which can be found here: https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md
 
 Commands are:
 1. General command:
