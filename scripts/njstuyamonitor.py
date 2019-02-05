@@ -100,8 +100,11 @@ def getState(device):
     try:
         output = subprocess.check_output("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + device, shell=True, stderr=subprocess.STDOUT)
     except:
-        output = "ERROR njstuya.js missing or can't connect to device"
-        pass
+        try: 
+            output = subprocess.check_output("/usr/bin/node njstuya.js " + device, shell=True, stderr=subprocess.STDOUT)
+        except:
+            output = "ERROR njstuya.js missing or can't connect to device"
+            pass
     return output
 
 try:
