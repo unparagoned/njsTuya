@@ -140,27 +140,10 @@ then
             if(db) { logInfo("tuya", "no config info found running config")}
             tuya_config.sendCommand("config")
         }
-        //var resp = getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString)
-        var resp = "FINE"
-        if ( ! resp.contains("Error") ){
-            if(db) { logInfo("Tuya", "Should action command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        }
-            resp = tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
-        }
-        else {
-            if(db) { logInfo("Tuya", "Device was not sending availability messages: trying again")}
-                createTimer(now.plusMillis(1000),  [ | 
-                    resp = getTuyaStatus.apply(LivingRoomHeaterDetails.state.toString)   
-                    if(db) { logInfo("Tuya", "Trying again to get avilability state")   }
-                    createTimer(now.plusMillis(1000),  [ | 
-                        resp = tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
-                    ])
-                ])
-        }
-        if(db) { logInfo("Tuya", "Normal {} Bad {}", ldtuya, ldtuyaBad)}
-        if(LivingRoomHeater.state.toString.contains("UNDEF")){
-            //Thread::sleep(1000)
-            //tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " REFRESHSTATE") 
-        }
+
+        if(db) { logInfo("Tuya", "Should action command as {}", LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString)        }
+        tuyaAction.apply(LivingRoomHeater, LivingRoomHeaterDetails.state.toString + " " + receivedCommand.toString) 
+       
     } finally{
         if(db) { logInfo("tuya", "cron living room unlock")}
         locktuya.unlock()
@@ -228,8 +211,8 @@ rule "Control Temp"
 when
     Item KitchenThermostatCurrentTemp changed
     or 
-    Item KitchenThermostatCurrentTemp received update
-    or
+    //Item KitchenThermostatCurrentTemp received update
+    //or
     Item KitchenThermostatTargetTemp changed
 then
     logInfo("Thermostat", "Set {} to move from {} to {}", LivingRoomHeater ,KitchenThermostatCurrentTemp.state, KitchenThermostatTargetTemp.state)
