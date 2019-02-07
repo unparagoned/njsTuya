@@ -16,7 +16,11 @@ cp node_modules/njstuya/scripts/* $openhab/scripts
 cp node_modules/njstuya/items/* $openhab/items/
 cp node_modules/njstuya/rules/* $openhab/rules/
 ```
-Try running
+If you know the device id try running, which should tell you the state and dps options.
+```
+node njstuya.js -id 213klj349sdfjl324po32 -get '{ "schema": true}'
+```
+Otherwise check to make sure it has installed properly.
 ```
 node njstuya.js
 $ ...Error: resolveIds() timed out. Is the device powered on and the ID correct?
