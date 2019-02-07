@@ -30,6 +30,7 @@ var tuyaIP = getArgs(args, "-ip");
 var tuyaID = getArgs(args, "-id");
 var tuyaKey = getArgs(args, "-key");
 var tuyaSet = getArgs(args, "-set");
+var tuyaGet = getArgs(args, "-get");
 
 if(tuyaKey.length == 0) {
     tuyaKey="1000000000000000"
@@ -55,6 +56,9 @@ if(tuyaIP.length > 4){
 
 
 function bmap(istate) {
+    type = typeof istate
+    if(db) console.log(`istate ${istate} and typeof ${type}`)
+    if(typeof istate != typeof true) return istate;
     return istate ? 'ON' : "OFF";
 }
 function getState(setString) {
@@ -82,7 +86,16 @@ function getNewState(retVal, setFun) {
         retVal=  false;
         setFun(retVal);
     } else if (args.includes("-set")) {
-        setFun(tuyaSet);
+        setFun(JSON.parse(tuyaSet));
+    } else if (args.includes("-get")) {
+        tuya.get(JSON.parse(tuyaGet)).then(status => {
+            if (db) { console.log('Status: ' + status); }
+            retVal= status;
+            console.log(bmap(retVal));
+        }, reason => {
+            console.log(reason.toString());
+            return;
+        });
     } else {
         tuya.get().then(status => {
             if (db) { console.log('Status: ' + status); }
