@@ -1,8 +1,8 @@
-/* 
+/*
  * Simple wrapper for tuyapi for use with openhab or command line
  Added support for more devices through set command
 npm install codetheweb/tuyapi
-node ohtuya.js args 
+node ohtuya.js args
 arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf TOGGLE
 arg format -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set '{ "dps": 0, "set": true }'
 args can be, ON, OFF, or TOGGLE. No arguement returns state
@@ -11,7 +11,8 @@ args can be, ON, OFF, or TOGGLE. No arguement returns state
 */
 
 const TuyaDevice = require('tuyapi');
-var args = process.argv.slice(2);
+
+const args = process.argv.slice(2);
 _DEBUG = false;
 
 var db = _DEBUG;
@@ -41,9 +42,9 @@ if(args.includes("debug")) {
     console.log("debug enabled");
     console.log(`ip ${tuyaIP} id ${tuyaID} key ${tuyaKey}`);
 }
-var tuya = new TuyaDevice({
+let tuya = new TuyaDevice({
     id: tuyaID,
-    key: tuyaKey,
+    key: tuyaKey
 });
 
 if(tuyaIP.length > 4){
