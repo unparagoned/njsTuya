@@ -81,6 +81,8 @@ function getNewState(retVal, setFun) {
     } else if (args.includes("OFF")) {
         retVal=  false;
         setFun(retVal);
+    } else if (args.includes("-set")) {
+        setFun(tuyaSet);
     } else {
         tuya.get().then(status => {
             if (db) { console.log('Status: ' + status); }
