@@ -1,7 +1,7 @@
 # njsTuya
 Openhab interface for Tuya home automation devices sold under various names. This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
 
-## Instructions:
+## Install Instructions:
 
 If nodejs and npm are installed, install the package from npm (otherwise obtain nodejs and npm first):
 ```
@@ -29,7 +29,7 @@ If you have python installed you can find all devices on your network and get th
 python $openhab/scripts/scripts/njstuyamonitor.py -v
 ```
 
-# Node installation
+## Node installation
 ### using package manager
 ```
 curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
@@ -59,10 +59,10 @@ Ignore the Warnings. If it's run in the same folder as the njsTuya.js script it 
 
 Then you need to download this project and place the files in the correct location. I have a separate git folder and rsync the relevant files, since I have my main openhab in it's own git. But for this you can just copy the njstuya.js file from the scripts folder into your openhab2.scrips folder You can also look at the items and rules files for a working setup.
 
-## Configuration to obtain private key
+### Configuration to obtain private key
 You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection. 
 
-### Android
+#### Android
 1. Install "Package Capture" from play store.
 2. When you first open it it will ask you to install a certificate, this is needed for it to work.
 3. In the top bar there are two "Play" symbols. The one with a 1 allows you to capture packets from certain apps.
@@ -83,6 +83,7 @@ This contains a lot of code but if you scroll through it you should see line lik
 ### All Other methods
 There are alternative methods which can be found here: https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md
 
+## Useage Instructions
 Commands are:
 1. General command:
 ```
@@ -94,6 +95,8 @@ where COMMAND is:
 * OFF
 * TOGGLE
 * STATE
+* -get
+* -set
 
 Example:
 ```
@@ -102,7 +105,22 @@ node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 ON
 
 All commands return the state of the switch.
 
-2. SET command:
+2. GET/SET commands for dps:
+
+```
+node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
+```
+
+where GETCOMMAND should be of the following format, including quote marks '{ "dps": 1 }'
+
+To get all the dps options for your device use the get command to get the schema
+Example:
+```
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -get '{ "schema": true}'
+```
+
+Set commands are similar but also have a state
+
 ```
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set SETCOMMAND
 ```
@@ -113,11 +131,9 @@ Example:
 ```
 node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{ "dps":1, "set": true }'
 ```
+Get 
 
 You may need to play about with the dps if you have multiple function for your device.
-
-## Issues
-There are some reliability issues with tuyapi. Latest changes changed the syntax but still getting error maybe at an even higher rate.
 
 ## Habpanel
 Here is how you would use a slider in habpanel to change the set temp.
