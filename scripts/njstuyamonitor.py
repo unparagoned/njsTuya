@@ -24,7 +24,7 @@ idMatch = ""
 ipMatch = ""
 ipMatch = re.match('.*ip ([0-9\.]*).*', argCommand)
 silent = True
-schema = " -get '{ \"schema\": true}'"
+schema = ' -get "{ \\"schema\\": true}"'
 mode = "schema"
 detection_loops = 2
 
@@ -35,6 +35,8 @@ if "-s" in argCommand:
     schema = ""
 if "-q" in argCommand:
     detection_loops = 1
+if "-d" in argCommand:
+    dp = True
 
 ppid = str(os.getpid())
 pidfile = "/tmp/njsmon.pid"
@@ -116,7 +118,8 @@ def fixJSONString(brokenString):
 
 def getState(device):
     scriptLocation=os.path.dirname(os.path.realpath(sys.argv[0]))
-    fullCmd = "node " + scriptLocation + "/njstuya.js " + device
+    dirType = '\\' if os.name == 'nt' else "/"
+    fullCmd = "node " + scriptLocation + dirType + "njstuya.js " + device
     try:   
         if dp: print("script cmd: %s" % fullCmd)
         output = subprocess.check_output(fullCmd, shell=True, stderr=subprocess.STDOUT)
