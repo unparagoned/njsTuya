@@ -90,7 +90,7 @@ function getNewState(retVal, setFun) {
         setFun(JSON.parse(tuyaSet));
     } else if (args.includes("-get")) {
         tuya.get(JSON.parse(tuyaGet)).then(status => {
-            if (db) { console.log('Status: ' + status); }
+            if (db) { console.log('Run :' + tuyaGet +' Status: ' + status); }
             retVal= status;
             console.log(bmap(retVal));
         }, reason => {
