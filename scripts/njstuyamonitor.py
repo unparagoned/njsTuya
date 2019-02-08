@@ -1,6 +1,7 @@
 #Gets List of devices on network
 # python njsmonitor.py options
 # -v for verbose
+# -s for simple mode, ON/OFF - how it used to work
 from __future__ import print_function
 import re
 from socket import *
@@ -11,6 +12,7 @@ import errno
 import datetime
 import subprocess
 import signal
+import json 
 
 _DEBUG = False
 dp = _DEBUG
@@ -22,8 +24,17 @@ idMatch = ""
 ipMatch = ""
 ipMatch = re.match('.*ip ([0-9\.]*).*', argCommand)
 silent = True
+schema = " -get '{ \"schema\": true}'"
+mode = "schema"
+detection_loops = 2
+
 if "-v" in argCommand:
     silent = False
+if "-s" in argCommand:
+    mode = "status"
+    schema = ""
+if "-q" in argCommand:
+    detection_loops = 1
 
 ppid = str(os.getpid())
 pidfile = "/tmp/njsmon.pid"
@@ -96,15 +107,26 @@ if os.name != 'nt':
     fw.write(ppid)
     fw.close()
 
+# quick conversion to more json like format for output
+def commandToJSON(command):
+    return re.sub(r'-(i[pd]) ([0-9a-zA-Z\.]*)',r'"\1": \2,',command)
+
+def fixJSONString(brokenString):
+    return re.sub(r' ([a-zA-Z]+)\:', r' "\1":', brokenString.replace("'",'"'))
+
 def getState(device):
-    try:
-        output = subprocess.check_output("/usr/bin/node /etc/openhab2/scripts/njstuya.js " + device, shell=True, stderr=subprocess.STDOUT)
+    scriptLocation=os.path.dirname(os.path.realpath(sys.argv[0]))
+    fullCmd = "node " + scriptLocation + "/njstuya.js " + device
+    try:   
+        if dp: print("script cmd: %s" % fullCmd)
+        output = subprocess.check_output(fullCmd, shell=True, stderr=subprocess.STDOUT)
     except:
         try: 
-            output = subprocess.check_output("/usr/bin/node njstuya.js " + device, shell=True, stderr=subprocess.STDOUT)
+            output = subprocess.check_output("node njstuya.js " + device, shell=True, stderr=subprocess.STDOUT)
         except:
             output = "ERROR njstuya.js missing or can't connect to device"
             pass
+    if dp: print("%s output : %s" % (fullCmd, output))
     return output
 
 try:
@@ -127,7 +149,7 @@ try:
     #user for loop just in case errors create infinite loops
     #Also go through twice incase timing error or device is slow
     var_list = []
-    detection_loops = 2
+    
     for cvar in range(0, 255):
         m = s.recvfrom(1024)
         if(not silent): print (' Devices on network details:\n%s' % m[0])
@@ -151,11 +173,21 @@ try:
             break
     s.close()
     if not silent: print("Getting device states")
-    print("{ Devices: [ ", end=" ")
+    print('{ "Devices": [ ', end=" ")
     for (i, j) in var_list:
         devDetails="-ip " + i + " -id " + j
-        output = getState(devDetails)
-        print(" \n{ %s -status: %s" % (devDetails, output), end=" },")
+        output = getState(devDetails + schema)
+        devDetailsJSON = commandToJSON(devDetails)
+        outputJSON = fixJSONString(output)
+        status=""
+        if mode == "schema":
+            status=json.loads(outputJSON)['dps']['1']
+            if type(status) is type(True):
+                statusString = 'ON' if status else 'OFF'
+            else:
+                statusString = str(status)
+            outputJSON= outputJSON + ' "status": ' + statusString
+        print(" \n{ %s \"%s\": %s" % (devDetailsJSON, mode, outputJSON), end=" },")
     print('\b ] }')
 
 finally:
