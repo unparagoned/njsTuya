@@ -1,6 +1,6 @@
 {
     "name": "njstuya",
-    "version": "1.1.2",
+    "version": "1.2.0",
     "description": "tuyapi wrapper with openhab support",
     "main": "njstuya.js",
     "scripts": {
@@ -23,6 +23,6 @@
     },
     "homepage": "https://github.com/unparagoned/njsTuya#readme",
     "dependencies": {
-        "tuyapi": "github:codetheweb/tuyapi"
+        "tuyapi": "github:unparagoned/tuyapi"
     }
 }
