@@ -16,6 +16,12 @@ cp node_modules/njstuya/scripts/* $openhab/scripts
 cp node_modules/njstuya/items/* $openhab/items/
 cp node_modules/njstuya/rules/* $openhab/rules/
 ```
+### Get Devices on network and thier state
+If you have python installed you can find all devices on your network and get thier state without having their key.
+```
+python $openhab/scripts/njstuyamonitor.py -v
+```
+
 If you know the device id try running, which should tell you the state and dps options.
 ```
 node njstuya.js -id 213klj349sdfjl324po32 -get '{ "schema": true}'
@@ -26,12 +32,6 @@ node njstuya.js
 $ ...Error: resolveIds() timed out. Is the device powered on and the ID correct?
 ```
 you should get an error as above
-
-### Get Devices on network and thier state
-If you have python installed you can find all devices on your network and get thier state without having their key.
-```
-python $openhab/scripts/scripts/njstuyamonitor.py -v
-```
 
 ## Node installation
 ### using package manager
@@ -115,12 +115,13 @@ All commands return the state of the switch.
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
 ```
 
-where GETCOMMAND should be of the following format, including quote marks '{ "dps": 1 }'
+Where the GETCOMMAND should be of the following format, including quote marks "{ \"dps\": 1 }" 
+If you are on linux you can use the old syntax '{ "dps": 1 }'
 
 To get all the dps options for your device use the get command to get the schema
 Example:
 ```
-node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -get '{ "schema": true}'
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -get "{ \"schema\": true}"
 ```
 
 Set commands are similar but also have a state
@@ -129,11 +130,11 @@ Set commands are similar but also have a state
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set SETCOMMAND
 ```
 
-where SETCOMMAND should be of the following format, including quote marks '{ "dps": 1, "set": true }'
+where SETCOMMAND should be of the following format, including quote marks "{ \"dps\": 1, \"set\": true }"
 
 Example:
 ```
-node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{ "dps":1, "set": true }'
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set "{ \"dps\": 1, \"set\": true }"
 ```
 Get 
 
