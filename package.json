@@ -1,8 +1,8 @@
 {
     "name": "njstuya",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "description": "tuyapi wrapper with openhab support",
-    "main": "njstuya.js",
+    "main": "njstuya",
     "scripts": {
         "test": "-ip 192.168.x.x -id 12.1.14564df -key dsf456sdf TOGGLE"
     },
