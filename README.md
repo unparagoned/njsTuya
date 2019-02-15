@@ -42,14 +42,6 @@ curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-### using npm
-Install tuyapi from the same folder that the njsTuya.js is in
-```
-cd $openhab/scripts
-npm install codetheweb/tuyapi
-```
-Then just copy njstuya.js into your scripts directory, and the rules and items into the appropriate folders in $openhab
-
 The following shouldn't be necessary but might be if you have old version of node and don't have timeout. 
 
 ```
@@ -61,9 +53,6 @@ sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/nodejs
 #install timout if you get errors about timeout
 pip install timeout
 ```
-Ignore the Warnings. If it's run in the same folder as the njsTuya.js script it should have installed fine.(You can run npm init --yes before hand to reduce the number of warnings if you are of that type)
-
-Then you need to download this project and place the files in the correct location. I have a separate git folder and rsync the relevant files, since I have my main openhab in it's own git. But for this you can just copy the njstuya.js file from the scripts folder into your openhab2.scrips folder You can also look at the items and rules files for a working setup.
 
 ### Configuration to obtain private key
 You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection. 
