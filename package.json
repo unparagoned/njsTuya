@@ -1,6 +1,6 @@
 {
     "name": "njstuya",
-    "version": "1.2.0",
+    "version": "2.1.0",
     "description": "tuyapi wrapper with openhab support",
     "main": "njstuya.js",
     "scripts": {
