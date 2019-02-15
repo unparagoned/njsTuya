@@ -9,29 +9,31 @@ openhab=/etc/openhab2
 cd $openhab/scripts
 sudo npm install unparagoned/njsTuya
 ```
-
-Then copy the files to Openhab configuration directories:
+### Test Install
+Run the following which should find all devices on your netork and return their state.
 ```
-cp node_modules/njstuya/scripts/* $openhab/scripts
+node node_modules/njstuya
+```
+### Configuration
+To use create a rule which sends a command to the script 
+```
+var resp = executeCommandLine("node /etc/openhab2/scripts/node_modules/njstuya" + command, 50000)
+logInfo("Tuya", "Run Command: [{}] Result {}", command, resp)
+
+```
+To use the following items and rule as an example copy the files to Openhab configuration directories:
+```
 cp node_modules/njstuya/items/* $openhab/items/
 cp node_modules/njstuya/rules/* $openhab/rules/
 ```
-### Get Devices on network and thier state
-If you have python installed you can find all devices on your network and get thier state without having their key.
-```
-python $openhab/scripts/njstuyamonitor.py -v
-```
+Once you have your id, ip, key for a device uncomment the first rule un temperature.rules and enter in your device details.
 
-If you know the device id try running, which should tell you the state and dps options.
+If you know the device id or ip try running, to get the state and dps options for a specific device
 ```
 node njstuya.js -id 213klj349sdfjl324po32 -get '{ "schema": true}'
+node njstuya.js -ip 123.0.0.2 -get '{ "schema": true}'
 ```
-Otherwise check to make sure it has installed properly.
-```
-node njstuya.js
-$ ...Error: resolveIds() timed out. Is the device powered on and the ID correct?
-```
-you should get an error as above
+
 
 ## Node installation
 ### using package manager
@@ -95,6 +97,7 @@ node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY COMMAND
 ```
 
 where COMMAND is:
+* None
 * ON
 * OFF
 * TOGGLE
@@ -105,6 +108,10 @@ where COMMAND is:
 Example:
 ```
 node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 ON
+```
+If no the ip and id are missing then the script will scan the network and return the state schema(state) of all devices.
+```
+node node_modules/njstuya
 ```
 
 All commands return the state of the switch.
