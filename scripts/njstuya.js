@@ -70,72 +70,48 @@ try {
 }
 
 function bmap(istate) {
-  const type = typeof istate;
-  dprint(`istate ${istate} and typeof ${type}`);
   if (typeof istate !== typeof true) return istate;
   return istate ? 'ON' : 'OFF';
 }
 
-function getState(setString) {
+function parseState(setString) {
   if (setString.includes('true')) return true;
   return false;
 }
-// Checks ARG type then runs relevent command
-function getNewState(setFun) {
-  let retVal;
-  if (args.includes('TOGGLE')) {
-    tuya.get().then((status) => {
-      dprint(`Status: ${status}`);
-      retVal = !status;
-      setFun(retVal);
-    }, (reason) => {
-      print(reason.toString());
-    });
-  } else if (args.includes('ON')) {
-    retVal = true;
-    setFun(retVal);
-  } else if (args.includes('OFF')) {
-    retVal = false;
-    setFun(retVal);
-  } else if (args.includes('-set')) {
-    setFun(JSON.parse(tuyaSet));
-  } else if (args.includes('-get')) {
-    tuya.get(JSON.parse(tuyaGet)).then((status) => {
-      dprint(`Run :${tuyaGet} Status: ${status}`);
-      retVal = status;
-      print(bmap(retVal));
-    }, (reason) => {
-      print(reason.toString());
-    });
-  } else {
-    tuya.get().then((status) => {
-      dprint(`Status: ${status}`);
-      retVal = status;
-      print(bmap(retVal));
-    }, (reason) => {
-      print(reason.toString());
-    });
+
+function isCommand(command) {
+  return (args.includes(command)
+    || args.includes(command.toUpperCase())
+    || args.includes(command.toLowerCase()));
+}
+
+async function getState() {
+  let dps;
+  if (tuyaGet.length > 0) {
+    dps = JSON.parse(tuyaGet);
   }
+  return tuya.get(dps).then(status => status, (reason) => {
+    print(reason.toString());
+  });
 }
 
 // Sets new state and returns new stae
-function setState(iState) {
+async function setState(iState) {
   let state = iState;
   let stateObj = {
     set: state,
   };
   if (tuyaSet.length > 0) {
-    state = getState(tuyaSet);
+    state = parseState(tuyaSet);
     stateObj = JSON.parse(tuyaSet);
   }
   dprint(`new state:${JSON.stringify(stateObj)}`);
 
-  tuya.set(stateObj).then((result) => {
+  await tuya.set(stateObj).then((result) => {
     dprint(`Result of setting status to ${JSON.stringify(stateObj)}: ${result}`);
     if (result) {
       print(bmap(state));
     } else {
-      // this sounds more like an error than just a fail.
       print(bmap(!state));
     }
   }, (reason) => {
@@ -144,32 +120,34 @@ function setState(iState) {
 }
 /* Main Check if ID or IP is missing then perform resolve first
  */
-if (tuyaIP.length > 4 && tuyaID.length > 4) {
-  dprint('Instant');
-  getNewState(setState);
-} else if (tuyaIP.length > 0 || tuyaID.length > 0) {
-  tuya.resolveId().then(() => {
-    dprint(`Resolving IP ${tuya.device.ip} and id ${tuya.device.id}`);
-    getNewState(setState);
-  });
-} else {
-  /* tuya.resolveDevices().then(() => {
-    dprint(`devices ${JSON.stringify(tuya.devices)}`);
-    const ids = Object.keys(tuya.devices);
-    ids.forEach((newId) => {
-      const newTuya = new TuyaDevice({
-        id: newId,
-        key: tuyaKey,
-        ip: tuya.devices[newId].ip,
-      });
-      newTuya.get(JSON.parse('{ "schema": true }')).then((status) => {
-        dprint(`Run :${newId} Status: ${status}`);
-        print(bmap(status));
-        dprint(`"id": ${newId}, "broadcast": ${JSON.stringify(tuya.devices[newId])}, "schema": ${JSON.stringify(status)}`);
-      }, (reason) => {
-        print(reason.toString());
-      });
-      print(`"id": ${newId}, "broadcast": ${tuya.devices[newId]}`);
-    });
-  }); */
+async function main() {
+  if (tuyaIP.length === 0 && tuyaID.length === 0) {
+    // Logic for my branch and new refactored tuyapi
+    if (tuya.findDevices !== undefined) await tuya.findDevices();
+    return;
+  }
+  if (tuyaIP.length < 4 || tuyaID.length < 4) {
+    // Logic for my branch and new refactored tuyapi
+    if (tuya.find === undefined) await tuya.resolveId();
+    else await tuya.find();
+    dprint(`ip ${tuya.device.ip} id: ${tuya.device.id}`);
+  }
+
+  if (isCommand('Toggle')) {
+    const status = await getState();
+    dprint(`Status: ${status}`);
+    await setState(!status);
+  } else if (isCommand('On')) {
+    await setState(true);
+  } else if (isCommand('Off')) {
+    await setState(false);
+  } else if (isCommand('-Set')) {
+    await setState(JSON.parse(tuyaSet));
+  } else {
+    const status = await getState();
+    dprint(`Status: ${status}`);
+    print(bmap(status));
+  }
+  // tuya.disconnect();
 }
+main();
