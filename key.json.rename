@@ -1,0 +1,8 @@
+ {
+  "Instructions": "Complete with tuya/smart_life app email/pass/dialingCode/region then rename to key.json",
+  "userName" : "d@yahoo.com",
+  "password": "yourpassword",
+  "countryCode": "44",
+  "bizType": "smart_life",
+  "region": "EU"
+ }
