@@ -4,7 +4,8 @@ Openhab interface for Tuya home automation devices sold under various names.
 This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
 and unparagoned/cloudtuya https://github.com/unparagoned/cloudtuya
 
-There is support for local control after identifying the localKey for each device, or limited support for control for devices using the tuya or smartlife app using the app email and pass.
+There is support for local control after identifying the localKey for each device.
+And basic support for devices setup using the tuya or smartlife app. Using the tuya app login email and pass.
 
 ## Install Instructions:
 
