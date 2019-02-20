@@ -6,13 +6,21 @@ node njstuya.js args
 node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf COMMAND
 node njstuya.js -id 1231204564df -get "{ \"schema\": true }"
 node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set "{ \"dps\": 0, \"set\": true }"
+NEW Cloud Mode
+njstuya.js -mode cloud -user email -pass password -biz smart_life -code 44 -region eu -id 12312312312 COMMAND
 COMMAND can be, ON, OFF, or TOGGLE. No arguement returns state
 @todo set up js to log properly, sending to console messes up output.
 @todo limit connection frequency seem to get connection errors
 */
 
-const TuyaDevice = require('tuyapi');
 
+const debug = require('debug')('njstuya');
+const fs = require('fs');
+const CloudTuya = require('cloudtuya');
+const TuyaDevice = require('tuyapi');
+const name = 'njstuya';
+
+debug('booting %s', name);
 const args = process.argv.slice(2);
 
 let db = false;
@@ -43,10 +51,22 @@ let tuyaKey = getArgs(args, '-key');
 const tuyaSet = getArgs(args, '-set');
 const tuyaGet = getArgs(args, '-get');
 let tuyaResolve = getArgs(args, '-res');
+let tuyaUser = getArgs(args, '-user');
+let tuyaPass = getArgs(args, '-pass');
+let tuyaBiz = getArgs(args, '-biz');
+let tuyaCountryCode = getArgs(args, '-code');
+let tuyaRegion = getArgs(args, '-region');
+
+// cloud or local
+let tuyaMode = getArgs(args, '-mode');
 if (tuyaResolve === undefined || tuyaResolve.includes('true')) tuyaResolve = true;
 else tuyaResolve = ((tuyaResolve.includes('false') ? false : tuyaResolve));
 
-
+if (tuyaMode.length === 0) {
+  if (tuyaKey.length === 0 && tuyaUser.length > 0 && tuyaPass > 0) {
+    tuyaMode = 'cloud';
+  } else tuyaMode = 'local';
+}
 if (tuyaKey.length === 0) {
   tuyaKey = '1000000000000000';
 }
@@ -80,9 +100,9 @@ function parseState(setString) {
 }
 
 function isCommand(command) {
-  return (args.includes(command)
-    || args.includes(command.toUpperCase())
-    || args.includes(command.toLowerCase()));
+  return (args.includes(command) ||
+    args.includes(command.toUpperCase()) ||
+    args.includes(command.toLowerCase()));
 }
 
 async function getState() {
@@ -121,10 +141,72 @@ async function setState(iState) {
 /* Main function which gets and sets state according to input
  */
 function main() {
+  if (tuyaMode.includes('cloud')) runCloud();
+  else runLocal();
+}
+async function runCloud() {
+
+  const api = new CloudTuya({
+    userName: tuyaUser,
+    password: tuyaPass,
+    bizType: tuyaBiz,
+    countryCode: tuyaCountryCode,
+    region: tuyaRegion,
+  });
+
+  const tokens = await api.login();
+  debug(`Token ${JSON.stringify(tokens)}`);
+
+
+  if (isCommand('On')) {
+    devices = await api.setState({
+      devId: tuyaID,
+      setState: 1,
+    });
+  } else if (isCommand('Off')) {
+    devices = await api.setState({
+      devId: tuyaID,
+      setState: 0,
+    });
+  } else if (isCommand('-Set')) throw new Error(`Set not available on cloud yet`);
+
+  // Get state of a single device
+  let deviceStates = await api.state({
+    devId: tuyaID,
+  });
+  let status = deviceStates[tuyaID];
+
+  if (isCommand('Toggle')) {
+    let newState = 1;
+    debug(`status ${status} + ${status.includes('ON')}`);
+    if(status.includes('ON')){
+      newState = 0;
+    }
+    devices = await api.setState({
+      devId: tuyaID,
+      setState: newState,
+    });
+    deviceStates = await api.state({
+      devId: tuyaID,
+    });
+    status = deviceStates[tuyaID];
+  }
+
+  if (isCommand('-Get')) throw new Error(`Set not available on cloud yet`);
+  // Shows state for all gets status or toggle
+  dprint(`Status: ${status}`);
+  print(status);
+}
+
+
+async function runLocal() {
   // Promise is probably redundant
   return new Promise(async (resolve, reject) => {
     // Disconnect after 10 seconds
-    const tuyaTimeout = setTimeout(() => { tuya.disconnect(); reject(); }, 10000);
+    const tuyaTimeout = setTimeout(() => {
+      tuya.disconnect();
+      reject();
+    }, 10000);
     // Runs the logic converting CLI to commands
     const runCommand = async (initState) => {
       dprint(`runCommand has started with data ${JSON.stringify(initState)}`);
