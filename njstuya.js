@@ -63,7 +63,7 @@ try {
     key: tuyaKey,
     ip: tuyaIP,
     resolve: tuyaResolve,
-    persistentConnection: false,
+    // persistentConnection: false,
   });
 } catch (error) {
   print(`caught error: ${error.toString()}`);
@@ -118,36 +118,65 @@ async function setState(iState) {
     print(`${reason.toString()} - Try without IP to auto resolve IP`);
   });
 }
-/* Main Check if ID or IP is missing then perform resolve first
+/* Main function which gets and sets state according to input
  */
-async function main() {
-  if (tuyaIP.length === 0 && tuyaID.length === 0) {
-    // Logic for my branch and new refactored tuyapi
-    if (tuya.findDevices !== undefined) await tuya.findDevices();
-    return;
-  }
-  if (tuyaIP.length < 4 || tuyaID.length < 4) {
-    // Logic for my branch and new refactored tuyapi
-    if (tuya.find === undefined) await tuya.resolveId();
-    else await tuya.find();
-    dprint(`ip ${tuya.device.ip} id: ${tuya.device.id}`);
-  }
+function main() {
+  // Promise is probably redundant
+  return new Promise(async (resolve, reject) => {
+    // Disconnect after 10 seconds
+    const tuyaTimeout = setTimeout(() => { tuya.disconnect(); reject(); }, 10000);
+    // Runs the logic converting CLI to commands
+    const runCommand = async (initState) => {
+      dprint(`runCommand has started with data ${JSON.stringify(initState)}`);
+      tuya.removeListener('data', runCommand);
+      let status = initState.dps['1'];
+      // Ignore initial response if user is using dps
+      if (isCommand('On')) await setState(true);
+      else if (isCommand('Off')) await setState(false);
+      else if (isCommand('-Set')) await setState(JSON.parse(tuyaSet));
+      else if (isCommand('Toggle')) await setState(!status);
+      else {
+        if (isCommand('-Get')) status = await getState();
+        // Shows state for all gets status or toggle
+        dprint(`Status: ${status}`);
+        print(bmap(status));
+      }
+      tuya.disconnect();
+      clearTimeout(tuyaTimeout);
+      resolve();
+    };
 
-  if (isCommand('Toggle')) {
-    const status = await getState();
-    dprint(`Status: ${status}`);
-    await setState(!status);
-  } else if (isCommand('On')) {
-    await setState(true);
-  } else if (isCommand('Off')) {
-    await setState(false);
-  } else if (isCommand('-Set')) {
-    await setState(JSON.parse(tuyaSet));
-  } else {
-    const status = await getState();
-    dprint(`Status: ${status}`);
-    print(bmap(status));
-  }
-  // tuya.disconnect();
+    // Add event listeners
+    // Connect auto gets state so put main logic into the listner.
+    tuya.on('data', runCommand);
+
+    tuya.on('connected', () => {
+      dprint('Connected to device!');
+    });
+
+    tuya.on('disconnected', () => {
+      dprint('Disconnected from device.');
+    });
+
+    tuya.on('error', (error) => {
+      dprint('Error!', error);
+    });
+    // Resolve Missing IDs/IPS or resolve full network
+    if (tuyaIP.length === 0 && tuyaID.length === 0) {
+      // Logic for my branch and new refactored tuyapi
+      const devices = await (tuya.findDevices() || tuya.find());
+      print(`Devices ip ${JSON.stringify(devices)}`);
+      resolve(devices);
+      clearTimeout(tuyaTimeout);
+      return;
+    }
+    if (tuyaIP.length < 4 || tuyaID.length < 4) {
+      // Logic for my branch and new refactored tuyapi
+      const device = await (tuya.find() || tuya.resolveId());
+      dprint(`ip ${device.ip} id: ${device.id}`);
+    }
+    await tuya.connect();
+  });
 }
+
 main();
