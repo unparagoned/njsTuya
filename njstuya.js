@@ -10,7 +10,7 @@
  * node njstuya.js args COMMAND
  * node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf COMMAND
  * node njstuya.js -id 1231204564df -get "{ \"schema\": true }"
- * node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set "{ \"dps\": 0, \"set\": true }"
+ * node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set "{ \"dps\": 1, \"set\": true }"
  * COMMAND: ON, OFF, or TOGGLE.
  * DEBUG MODE
  * DEBUG=* node node njstuya.js
@@ -60,7 +60,7 @@ else tuyaResolve = ((tuyaResolve.includes('false') ? false : tuyaResolve));
 let apiKey = {};
 
 if(tuyaMode.length === 0) {
-  if(tuyaKey.length === 0) {
+  if(tuyaKey.length === 0 && args.length > 0) {
     if(tuyaUser.length > 0 && tuyaPass.length > 0) {
       tuyaMode = 'cloud';
     } else{
@@ -188,7 +188,7 @@ async function runCloud() {
     const deviceStates = await api.state({
       devId: tuyaID,
     });
-    const status = deviceStates[tuyaID];
+    const status = ((tuyaID.length > 0) && deviceStates[tuyaID]) || deviceStates;
 
     if(isCommand('Toggle')) {
       let newState = 1;
@@ -255,7 +255,7 @@ async function runLocal() {
     if(tuyaIP.length === 0 && tuyaID.length === 0) {
       // Logic for my branch and new refactored tuyapi
       const devices = await (tuya.findDevices() || tuya.find());
-      print(`Devices ip ${JSON.stringify(devices)}`);
+      print(`{ "devices": [ ${JSON.stringify(devices)} ] }`);
       resolve(devices);
       clearTimeout(tuyaTimeout);
       return;
