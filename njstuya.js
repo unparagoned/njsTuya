@@ -4,12 +4,16 @@
  * npm install unparagoned/njsTuya
  * NEW CLOUD MODE
  * njstuya.js -mode cloud -user email -pass password -biz smart_life -code 44 -region eu -id 12312312312 COMMAND
+ * OR add details to key.json
+ * njstuya.js -mode cloud -id 12312312312 COMMAND
  * ** USE LOCAL LAN
  * node njstuya.js args COMMAND
  * node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf COMMAND
  * node njstuya.js -id 1231204564df -get "{ \"schema\": true }"
  * node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf -set "{ \"dps\": 0, \"set\": true }"
  * COMMAND: ON, OFF, or TOGGLE.
+ * DEBUG MODE
+ * DEBUG=* node node njstuya.js
  * */
 
 const debug = require('debug')('njstuya');
@@ -20,13 +24,6 @@ const name = 'njstuya';
 
 debug('booting %s', name);
 const args = process.argv.slice(2);
-
-let db = false;
-
-function dprint(text) {
-  // eslint-disable-next-line no-console
-  if(db) console.log(text);
-}
 
 function print(text) {
   // eslint-disable-next-line no-console
@@ -39,7 +36,7 @@ function getArgs(allArgs, argName) {
   if(nameIndex >= 0) {
     argValue = allArgs[nameIndex + 1];
     argValue = (argValue !== undefined ? argValue.replace(/'/g, '') : argValue);
-    dprint(`"{argName} value is: ${argValue}`);
+    debug(`"{argName} value is: ${argValue}`);
   }
   return argValue;
 }
@@ -54,26 +51,37 @@ const tuyaPass = getArgs(args, '-pass');
 const tuyaBiz = getArgs(args, '-biz');
 const tuyaCountryCode = getArgs(args, '-code');
 const tuyaRegion = getArgs(args, '-region');
+let tuyaMode = getArgs(args, '-mode');
 
 // cloud or local
-let tuyaMode = getArgs(args, '-mode');
+
 if(tuyaResolve === undefined || tuyaResolve.includes('true')) tuyaResolve = true;
 else tuyaResolve = ((tuyaResolve.includes('false') ? false : tuyaResolve));
+let apiKey = {};
 
 if(tuyaMode.length === 0) {
-  if(tuyaKey.length === 0 && tuyaUser.length > 0 && tuyaPass > 0) {
-    tuyaMode = 'cloud';
-  } else tuyaMode = 'local';
+  if(tuyaKey.length === 0) {
+    if(tuyaUser.length > 0 && tuyaPass.length > 0) {
+      tuyaMode = 'cloud';
+    } else{
+      try{
+        apiKey = require('./key.json') || {};
+        tuyaMode = 'cloud';
+      } catch(err) {
+        tuyaMode = 'local';
+        debug('local mode');
+      }
+    }
+  } else{
+    tuyaMode = 'local';
+  }
 }
+
+
 if(tuyaKey.length === 0) {
   tuyaKey = '1000000000000000';
 }
 
-if(args.includes('debug') || args.includes('-d')) {
-  db = true;
-  dprint('debug enabled');
-  dprint(`ip ${tuyaIP} id ${tuyaID} key ${tuyaKey}`);
-}
 let tuya;
 try{
   tuya = new TuyaDevice({
@@ -86,10 +94,27 @@ try{
 } catch(error) {
   print(`caught error: ${error.toString()}`);
 }
+let api = {};
+debug(`api ${JSON.stringify(apiKey)} or ${apiKey.userName}`);
+if(tuyaMode === 'cloud') {
+  apiKey = require('./key.json') || {};
+  api = new CloudTuya({
+    userName: apiKey.userName || tuyaUser,
+    password: apiKey.password || tuyaPass,
+    bizType: apiKey.bizType || tuyaBiz,
+    countryCode: apiKey.countryCode || tuyaCountryCode,
+    region: apiKey.region || tuyaRegion,
+  });
+}
+
 
 function bmap(istate) {
   if(typeof istate !== typeof true) return istate;
   return istate ? 'ON' : 'OFF';
+}
+
+function cState(istate) {
+  return((istate === 1) && true) || false;
 }
 
 function parseState(setString) {
@@ -123,10 +148,10 @@ async function setState(iState) {
     state = parseState(tuyaSet);
     stateObj = JSON.parse(tuyaSet);
   }
-  dprint(`new state:${JSON.stringify(stateObj)}`);
+  debug(`new state:${JSON.stringify(stateObj)}`);
 
   await tuya.set(stateObj).then((result) => {
-    dprint(`Result of setting status to ${JSON.stringify(stateObj)}: ${result}`);
+    debug(`Result of setting status to ${JSON.stringify(stateObj)}: ${result}`);
     if(result) {
       print(bmap(state));
     } else{
@@ -137,57 +162,48 @@ async function setState(iState) {
   });
 }
 
-async function runCloud() {
-  const api = new CloudTuya({
-    userName: tuyaUser,
-    password: tuyaPass,
-    bizType: tuyaBiz,
-    countryCode: tuyaCountryCode,
-    region: tuyaRegion,
+async function setStateCloud(iState) {
+  const resp = await api.setState({
+    devId: tuyaID,
+    setState: iState,
   });
+  const status = cState(iState);
+  if(resp.header.code === 'SUCCESS') {
+    print(bmap(status));
+  } else print(bmap(status));
+}
 
+async function runCloud() {
   const tokens = await api.login();
   debug(`Token ${JSON.stringify(tokens)}`);
 
 
   if(isCommand('On')) {
-    await api.setState({
-      devId: tuyaID,
-      setState: 1,
-    });
+    await setStateCloud(1);
   } else if(isCommand('Off')) {
-    await api.setState({
-      devId: tuyaID,
-      setState: 0,
-    });
+    await setStateCloud(0);
   } else if(isCommand('-Set')) throw new Error('Set not available on cloud yet');
-
+  else{
   // Get state of a single device
-  let deviceStates = await api.state({
-    devId: tuyaID,
-  });
-  let status = deviceStates[tuyaID];
+    const deviceStates = await api.state({
+      devId: tuyaID,
+    });
+    const status = deviceStates[tuyaID];
 
-  if(isCommand('Toggle')) {
-    let newState = 1;
-    debug(`status ${status} + ${status.includes('ON')}`);
-    if(status.includes('ON')) {
-      newState = 0;
+    if(isCommand('Toggle')) {
+      let newState = 1;
+      debug(`status ${status} + ${status.includes('ON')}`);
+      if(status.includes('ON')) {
+        newState = 0;
+      }
+      setStateCloud(newState);
+    } else{
+      if(isCommand('-Get')) throw new Error('Set not available on cloud yet');
+      // Shows state for all gets status or toggle
+      debug(`Status: ${status}`);
+      print(status);
     }
-    await api.setState({
-      devId: tuyaID,
-      setState: newState,
-    });
-    deviceStates = await api.state({
-      devId: tuyaID,
-    });
-    status = deviceStates[tuyaID];
   }
-
-  if(isCommand('-Get')) throw new Error('Set not available on cloud yet');
-  // Shows state for all gets status or toggle
-  dprint(`Status: ${status}`);
-  print(status);
 }
 
 
@@ -201,7 +217,7 @@ async function runLocal() {
     }, 10000);
     // Runs the logic converting CLI to commands
     const runCommand = async (initState) => {
-      dprint(`runCommand has started with data ${JSON.stringify(initState)}`);
+      debug(`runCommand has started with data ${JSON.stringify(initState)}`);
       tuya.removeListener('data', runCommand);
       let status = initState.dps['1'];
       // Ignore initial response if user is using dps
@@ -212,7 +228,7 @@ async function runLocal() {
       else{
         if(isCommand('-Get')) status = await getState();
         // Shows state for all gets status or toggle
-        dprint(`Status: ${status}`);
+        debug(`Status: ${status}`);
         print(bmap(status));
       }
       tuya.disconnect();
@@ -225,15 +241,15 @@ async function runLocal() {
     tuya.on('data', runCommand);
 
     tuya.on('connected', () => {
-      dprint('Connected to device!');
+      debug('Connected to device!');
     });
 
     tuya.on('disconnected', () => {
-      dprint('Disconnected from device.');
+      debug('Disconnected from device.');
     });
 
     tuya.on('error', (error) => {
-      dprint('Error!', error);
+      debug('Error!', error);
     });
     // Resolve Missing IDs/IPS or resolve full network
     if(tuyaIP.length === 0 && tuyaID.length === 0) {
@@ -247,7 +263,7 @@ async function runLocal() {
     if(tuyaIP.length < 4 || tuyaID.length < 4) {
       // Logic for my branch and new refactored tuyapi
       const device = await (tuya.find() || tuya.resolveId());
-      dprint(`ip ${device.ip} id: ${device.id}`);
+      debug(`ip ${device.ip} id: ${device.id}`);
     }
     await tuya.connect();
   });
