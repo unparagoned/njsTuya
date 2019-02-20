@@ -1,29 +1,35 @@
 {
-    "name": "njstuya",
-    "version": "2.1.2",
-    "description": "tuyapi wrapper with openhab support",
-    "main": "njstuya",
-    "scripts": {
-        "test": "-ip 192.168.x.x -id 12.1.14564df -key dsf456sdf TOGGLE"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/unparagoned/njsTuya.git"
-    },
-    "keywords": [
-        "njstuya",
-        "tuya",
-        "openhab",
-        "tuyapi"
-    ],
-    "author": "unparagoned",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/unparagoned/njsTuya/issues"
-    },
-    "homepage": "https://github.com/unparagoned/njsTuya#readme",
-    "dependencies": {
-        "tuyapi": "github:unparagoned/tuyapi"
-    },
-    "devDependencies": {}
+  "name": "njstuya",
+  "version": "2.2.2",
+  "description": "tuyapi wrapper with openhab support",
+  "main": "njstuya",
+  "scripts": {
+    "test": "-ip 192.168.x.x -id 12.1.14564df -key dsf456sdf TOGGLE"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unparagoned/njsTuya.git"
+  },
+  "keywords": [
+    "njstuya",
+    "tuya",
+    "openhab",
+    "tuyapi"
+  ],
+  "author": "unparagoned",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unparagoned/njsTuya/issues"
+  },
+  "homepage": "https://github.com/unparagoned/njsTuya#readme",
+  "dependencies": {
+    "cloudtuya": "github:unparagoned/cloudtuya",
+    "debug": "^4.1.1",
+    "tuyapi": "github:unparagoned/tuyapi"
+  },
+  "devDependencies": {
+    "eslint": "^5.14.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0"
+  }
 }

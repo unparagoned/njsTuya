@@ -1,5 +1,11 @@
 # njsTuya
-Openhab interface for Tuya home automation devices sold under various names. This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
+Openhab interface for Tuya home automation devices sold under various names. 
+
+This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
+and unparagoned/cloudtuya https://github.com/unparagoned/cloudtuya
+
+There is support for local control after identifying the localKey for each device.
+And basic support for devices setup using the tuya or smartlife app. Using the tuya app login email and pass.
 
 ## Install Instructions:
 
@@ -33,6 +39,32 @@ If you know the device id or ip try running, to get the state and dps options fo
 node njstuya.js -id 213klj349sdfjl324po32 -get '{ "schema": true}'
 node njstuya.js -ip 123.0.0.2 -get '{ "schema": true}'
 ```
+
+#### Cloud setup
+You can pass the cloud email and arguments through the cli, or complete the key.json.rename and rename it to key.json
+
+It is reccomended to put the details into key.json in the folder ./scripts/node_modules/njstuya/
+```
+ {
+   "userName" : "d@yahoo.com",
+  "password": "yourpassword",
+  "countryCode": "44",
+  "bizType": "smart_life",
+  "region": "EU"
+ }
+ ```
+ bizType can be 'tuya', 'smart_life'
+
+ Then you just need to run
+ ```
+ node njstuya.js -mode cloud -id DEVICEID COMMAND
+```
+
+Otherwise to pass all arugments without config enter the email/pass/international phone code/region
+```
+node njstuya.js -mode cloud -user email -pass password -biz smart_life -code 44 -region eu -id DEVICEID COMMAND
+```
+
 
 
 ## Node installation
@@ -80,12 +112,20 @@ There are alternative methods which can be found here: https://github.com/codeth
 
 ## Useage Instructions
 Commands are:
+
 1. General command:
+
 ```
-node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY COMMAND
+node njstuya.js -mode MODE -ip DEVICEIP -id DEVICEID -key DEVICEKEY COMMAND
 ```
 
+MODE is:
+
+* local
+* cloud
+
 where COMMAND is:
+
 * None
 * ON
 * OFF
@@ -106,6 +146,8 @@ node node_modules/njstuya
 All commands return the state of the switch.
 
 2. GET/SET commands for dps:
+
+Works in local only
 
 ```
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
