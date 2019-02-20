@@ -57,20 +57,26 @@ let tuyaMode = getArgs(args, '-mode');
 
 if(tuyaResolve === undefined || tuyaResolve.includes('true')) tuyaResolve = true;
 else tuyaResolve = ((tuyaResolve.includes('false') ? false : tuyaResolve));
-let apiKey = {};
+
+
+function getKey() {
+  try{
+    const key = require('./key.json');
+    return key;
+  } catch(err) {
+    return{};
+  }
+}
+const apiKey = getKey();
+
 
 if(tuyaMode.length === 0) {
   if(tuyaKey.length === 0 && args.length > 0) {
-    if(tuyaUser.length > 0 && tuyaPass.length > 0) {
+    if((tuyaUser.length > 0 && tuyaPass.length > 0) || apiKey.undefined) {
       tuyaMode = 'cloud';
     } else{
-      try{
-        apiKey = require('./key.json') || {};
-        tuyaMode = 'cloud';
-      } catch(err) {
-        tuyaMode = 'local';
-        debug('local mode');
-      }
+      tuyaMode = 'local';
+      debug('local mode');
     }
   } else{
     tuyaMode = 'local';
@@ -97,7 +103,6 @@ try{
 let api = {};
 debug(`api ${JSON.stringify(apiKey)} or ${apiKey.userName}`);
 if(tuyaMode === 'cloud') {
-  apiKey = require('./key.json') || {};
   api = new CloudTuya({
     userName: apiKey.userName || tuyaUser,
     password: apiKey.password || tuyaPass,
