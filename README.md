@@ -64,7 +64,12 @@ Otherwise to pass all arugments without config enter the email/pass/internationa
 ```
 node njstuya.js -mode cloud -user email -pass password -biz smart_life -code 44 -region eu -id DEVICEID COMMAND
 ```
-
+code = internatinal dialing code
+region = 'eu' | europe
+         'ay' | Asia
+         'az' | Americas
+biz = 'tuya'
+      'smart_life'
 
 
 ## Node installation
