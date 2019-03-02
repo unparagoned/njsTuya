@@ -152,19 +152,20 @@ All commands return the state of the switch.
 
 2. GET/SET commands for dps:
 
-Works in local only
+Works in local mode only. 
 
 ```
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
 ```
+Where the GETCOMMAND should be of the following format, including quote marks ```'{ "dps": 1 }' ```
 
-Where the GETCOMMAND should be of the following format, including quote marks "{ \"dps\": 1 }" 
-If you are on linux you can use the old syntax '{ "dps": 1 }'
+##### WINDOWS COMMAND FORMAT #####
+If you are on windows or just using the command line on linux you can use the old syntax ```"{ \"dps\": 1 }"```. But you may have issues using this format through the set command in openhab. 
 
 To get all the dps options for your device use the get command to get the schema
 Example:
 ```
-node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -get "{ \"schema\": true}"
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -get '{ "schema": true}'
 ```
 
 Set commands are similar but also have a state
@@ -173,11 +174,12 @@ Set commands are similar but also have a state
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set SETCOMMAND
 ```
 
-where SETCOMMAND should be of the following format, including quote marks "{ \"dps\": 1, \"set\": true }"
+Where SETCOMMAND should be of the following format, including quote marks '{ "dps": 1, "set": true }'
+Note for windows you have to use the following format for the command line "{ \"dps\": 1, \"set\": true }". But you may have other issues if you have openhab running on windows. 
 
 Example:
 ```
-node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set "{ \"dps\": 1, \"set\": true }"
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{ "dps": 1, "set": true }'
 ```
 Get 
 
