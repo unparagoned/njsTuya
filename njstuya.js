@@ -44,6 +44,7 @@ const tuyaIP = getArgs(args, '-ip');
 const tuyaID = getArgs(args, '-id');
 let tuyaKey = getArgs(args, '-key');
 const tuyaSet = getArgs(args, '-set');
+const tuyaSetM = getArgs(args, '-multi');
 const tuyaGet = getArgs(args, '-get');
 let tuyaResolve = getArgs(args, '-res');
 const tuyaUser = getArgs(args, '-user');
@@ -143,7 +144,10 @@ async function getState() {
   });
 }
 
-// Sets new state and returns new stae
+// Sets new state and returns new state for one dps setting
+// example of use:  -set { "dps": 1, "set": true } or
+// example of use:  -set { "dps": 7, "set": true }
+// Sets new state and returns new state
 async function setState(iState) {
   let state = iState;
   let stateObj = {
@@ -164,6 +168,46 @@ async function setState(iState) {
     }
   }, (reason) => {
     print(`${reason.toString()} - Try without IP to auto resolve IP`);
+  });
+}
+// Sets Multiple dps settings so it will set new states and returns new states
+// tuyapi v4.0.4 docs at URL: https://codetheweb.github.io/tuyapi/index.html
+// example of use:  -setm { "1": true, "7": true }
+// example of use:  -setm { "7": true }
+// example of use:  -setm { "1": true, "2": "scene_1" }
+// example of use:  -setm { "2": "scene_1" }
+// example of use:  -setm { "1": true, "2": "scene", "6": "3a59bd00e2afbc" }
+// example of use:  -setm { "2": "scene", "6": "3a59bd00e2afbc" }
+// example of use:  -setm { "1": true, "2": "colour", "5": "ff0033015cffff" }
+// example of use:  -setm { "2": ,"colour", "5": "ff0033015cffff" }
+// example of use:  -setm { "1': true, "2": "white", "3": 255, "4": 255 }
+// example of use:  -setm { "2": "white", "3": 27, "4": 255 }
+// example of user: -setm { "2": "white", "3": 255 }
+async function setStateM(iStateM) {
+  let multiple_state = iStateM;
+  let stateObjM = {
+    multiple: true,
+    data: multiple_state,
+  };
+  if(tuyaSetM.length > 0) {
+    multiple_state = parseState(tuyaSetM);
+    const objM = JSON.parse(tuyaSetM);
+    stateObjM = {
+      multiple: true,
+      data: objM,
+    };
+  }
+  debug(`new multiple dps set states:${JSON.stringify(stateObjM)}`);
+
+  await tuya.set(stateObjM).then((resultM) => {
+    debug(`Result of multiple dps settings set to ${JSON.stringify(stateObjM)}: ${resultM}`);
+    if(resultM) {
+      print(bmap(multiple_state));
+    } else{
+      print(bmap(!multiple_state));
+    }
+  }, (reasonM) => {
+    print(`${reasonM.toString()} - Try without IP to auto resolve IP`);
   });
 }
 
@@ -188,6 +232,7 @@ async function runCloud() {
   } else if(isCommand('Off')) {
     await setStateCloud(0);
   } else if(isCommand('-Set')) throw new Error('Set not available on cloud yet');
+  else if(isCommand('-multi')) throw new Error('Multi not available on cloud');
   else{
   // Get state of a single device
     const deviceStates = await api.state({
@@ -223,22 +268,33 @@ async function runLocal() {
     // Runs the logic converting CLI to commands
     const runCommand = async (initState) => {
       debug(`runCommand has started with data ${JSON.stringify(initState)}`);
-      tuya.removeListener('data', runCommand);
+      // tuya.removeListener('data', runCommand);
+      // tuya.removeListener is no longer available in tuyapi 4.0.4 if has be depreciated
+      // tuya.removeListener('data', runCommand);
+      // check to see which switch was used -set or -multi if both used default to -set only
       let status = initState.dps['1'];
+      if(tuyaSet.length > 0) {
       // Ignore initial response if user is using dps
-      if(isCommand('On')) await setState(true);
-      else if(isCommand('Off')) await setState(false);
-      else if(isCommand('-Set')) await setState(JSON.parse(tuyaSet));
-      else if(isCommand('Toggle')) await setState(!status);
-      else{
-        if(isCommand('-Get')) status = await getState();
-        // Shows state for all gets status or toggle
-        debug(`Status: ${status}`);
-        print(bmap(status));
+        if(isCommand('On')) await setState(true);
+        else if(isCommand('Off')) await setState(false);
+        else if(isCommand('-Set')) await setState(JSON.parse(tuyaSet));
+        else if(isCommand('Toggle')) await setState(!status);
+        else{
+          if(isCommand('-Get')) status = await getState();
+          // Shows state for all gets status or toggle
+          debug(`Status: ${status}`);
+          print(bmap(status));
+        }
+        tuya.disconnect();
+        clearTimeout(tuyaTimeout);
+        resolve();
+      } else if(tuyaSetM.length > 0) {
+        status = initState.dps['1'];
+        if(isCommand('-multi')) await setStateM(JSON.parse(tuyaSetM));
+        tuya.disconnect();
+        clearTimeout(tuyaTimeout);
+        resolve();
       }
-      tuya.disconnect();
-      clearTimeout(tuyaTimeout);
-      resolve();
     };
 
     // Add event listeners
