@@ -41,8 +41,9 @@ function getArgs(allArgs, argName) {
   return argValue;
 }
 const tuyaIP = getArgs(args, '-ip');
-const tuyaID = getArgs(args, '-id');
+let tuyaID = getArgs(args, '-id');
 let tuyaKey = getArgs(args, '-key');
+const tuyaVersion = getArgs(args, '-v');
 const tuyaSet = getArgs(args, '-set');
 const tuyaGet = getArgs(args, '-get');
 let tuyaResolve = getArgs(args, '-res');
@@ -69,7 +70,6 @@ function getKey() {
 }
 const apiKey = getKey();
 
-
 if(tuyaMode.length === 0) {
   if(tuyaKey.length === 0 && args.length > 0) {
     if((tuyaUser.length > 0 && tuyaPass.length > 0) || apiKey.undefined) {
@@ -87,6 +87,9 @@ if(tuyaMode.length === 0) {
 if(tuyaKey.length === 0) {
   tuyaKey = '1000000000000000';
 }
+if(tuyaID.length === 0 && tuyaIP.length === 0) {
+  tuyaID = '00000000000000000000';
+}
 
 let tuya;
 try{
@@ -95,7 +98,7 @@ try{
     key: tuyaKey,
     ip: tuyaIP,
     resolve: tuyaResolve,
-    // persistentConnection: false,
+    version: (tuyaVersion || undefined),
   });
 } catch(error) {
   print(`caught error: ${error.toString()}`);
@@ -181,8 +184,6 @@ async function setStateCloud(iState) {
 async function runCloud() {
   const tokens = await api.login();
   debug(`Token ${JSON.stringify(tokens)}`);
-
-
   if(isCommand('On')) {
     await setStateCloud(1);
   } else if(isCommand('Off')) {
@@ -211,6 +212,75 @@ async function runCloud() {
   }
 }
 
+async function getSchema(ip, id, key = '1000000000000000', version = '') {
+  return new Promise((resolve, reject) => {
+    let deviceData = {};
+    const newTuya = new TuyaDevice({
+      id,
+      ip,
+      key,
+      version,
+    });
+    setTimeout(() => {
+      newTuya.disconnect();
+      reject(new Error('Timeout getting schema'));
+    }, 5000);
+    newTuya.on('disconnected', () => {
+      debug('Disconnected from device.');
+    });
+    newTuya.on('error', (error) => {
+      debug('Error', error);
+      newTuya.disconnect();
+      reject(error);
+    });
+    newTuya.on('connected', () => {
+      debug('Connected to device!');
+      newTuya.get(JSON.parse('{ "schema": true }'));
+    });
+    newTuya.on('data', (schema) => {
+      debug(`${id}: ${JSON.
+        stringify(schema)}`);
+      newTuya.disconnect();
+      const broadcast = {};
+      Object.keys(newTuya.device).forEach((dkey) => {
+        if(dkey !== 'parser' && dkey !== 'key') broadcast[dkey] = newTuya.device[dkey];
+      });
+      deviceData = { id, broadcast, schema };
+      print(JSON.stringify(deviceData));
+      Object.keys(schema).forEach(attname => debug(`${attname}: ${JSON.stringify(schema[attname])}`));
+      resolve(deviceData);
+    });
+    newTuya.connect();
+  });
+}
+
+/**
+ * Find details of devices on network.
+ * @returns {Promise<Object>} the resulting state
+ */
+function findDevices() {
+  return new Promise((resolve, reject) => {
+    const devices = [];
+    tuya.find({ timeout: 8, all: true }).then(async () => {
+      debug(`devices ${JSON.stringify(tuya.foundDevices)}`);
+      debug(tuya.foundDevices);
+      print('{ "devices": [ ');
+      // eslint-disable-next-line no-restricted-syntax
+      for(const{ id, ip } of tuya.foundDevices) {
+        if(ip) {
+          // eslint-disable-next-line no-await-in-loop
+          await getSchema(ip, id).then(device => devices.push(device)).catch(error => debug(error));
+        }
+      }
+      print('] } ');
+      debug(`Updated Devices ${JSON.stringify(tuya.foundDevices)}`);
+      resolve(devices);
+    }, (reason) => {
+      print(`findDevices error ${reason.toString()}`);
+      reject(reason.toString());
+    }).catch(error => debug(error));
+  });
+}
 
 async function runLocal() {
   // Promise is probably redundant
@@ -257,12 +327,12 @@ async function runLocal() {
       debug('Error!', error);
     });
     // Resolve Missing IDs/IPS or resolve full network
-    if(tuyaIP.length === 0 && tuyaID.length === 0) {
+    if(tuyaID === '00000000000000000000') {
       // Logic for my branch and new refactored tuyapi
-      const devices = await (tuya.findDevices() || tuya.find());
-      print(`{ "devices": [ ${JSON.stringify(devices)} ] }`);
-      resolve(devices);
-      clearTimeout(tuyaTimeout);
+      findDevices().then((devices) => {
+        debug(`All devices ${JSON.stringify(devices)}`);
+        return resolve(devices);
+      }).catch(error => debug(error));
       return;
     }
     if(tuyaIP.length < 4 || tuyaID.length < 4) {
@@ -273,9 +343,10 @@ async function runLocal() {
     await tuya.connect();
   });
 }
+
 /* Main function which gets and sets state according to input
  */
-function main() {
+async function main() {
   if(tuyaMode.includes('cloud')) runCloud();
   else runLocal();
 }
