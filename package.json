@@ -1,6 +1,6 @@
 {
   "name": "njstuya",
-  "version": "2.2.3",
+  "version": "2.2.5",
   "description": "tuyapi wrapper with openhab support",
   "main": "njstuya",
   "scripts": {
@@ -25,6 +25,7 @@
   "dependencies": {
     "cloudtuya": "github:unparagoned/cloudtuya",
     "debug": "^4.1.1",
+    "tuyapi": "^5.3.1"
   },
   "devDependencies": {
     "eslint": "^5.14.1",

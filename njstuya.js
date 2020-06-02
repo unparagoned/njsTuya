@@ -222,6 +222,7 @@ async function getSchema(ip, id, key = '1000000000000000', version = '') {
       version,
     });
     setTimeout(() => {
+      debug('Timeout');
       newTuya.disconnect();
       reject(new Error('Timeout getting schema'));
     }, 5000);
@@ -235,20 +236,22 @@ async function getSchema(ip, id, key = '1000000000000000', version = '') {
     });
     newTuya.on('connected', () => {
       debug('Connected to device!');
-      newTuya.get(JSON.parse('{ "schema": true }'));
     });
     newTuya.on('data', (schema) => {
-      debug(`${id}: ${JSON.
-        stringify(schema)}`);
-      newTuya.disconnect();
-      const broadcast = {};
-      Object.keys(newTuya.device).forEach((dkey) => {
-        if(dkey !== 'parser' && dkey !== 'key') broadcast[dkey] = newTuya.device[dkey];
-      });
-      deviceData = { id, broadcast, schema };
-      print(JSON.stringify(deviceData));
-      Object.keys(schema).forEach(attname => debug(`${attname}: ${JSON.stringify(schema[attname])}`));
-      resolve(deviceData);
+      debug(`${id}: ${JSON.stringify(schema)}`);
+      try {
+        newTuya.disconnect();
+        const broadcast = {};
+        Object.keys(newTuya.device).forEach((dkey) => {
+          if(dkey !== 'parser' && dkey !== 'key') broadcast[dkey] = newTuya.device[dkey];
+        });
+        deviceData = {id, broadcast, schema};
+        print(JSON.stringify(deviceData));
+        Object.keys(schema).forEach(attname => debug(`${attname}: ${JSON.stringify(schema[attname])}`));
+        resolve(deviceData);
+      } catch(error) {
+        debug(error);
+      }
     });
     newTuya.connect();
   });
@@ -348,6 +351,6 @@ async function runLocal() {
  */
 async function main() {
   if(tuyaMode.includes('cloud')) runCloud();
-  else runLocal();
+  else runLocal().catch((error)=>debug(error));
 }
 main();
