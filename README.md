@@ -174,12 +174,13 @@ Set commands are similar but also have a state
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set SETCOMMAND
 ```
 
-Where SETCOMMAND should be of the following format, including quote marks '{ "dps": 1, "set": true }'
+Where SETCOMMAND should be of the following format, including quote marks '{ "dps": 1, "set": true }' or '{"multiple":true,"data":{"1":false,"7":false}}'
 Note for windows you have to use the following format for the command line "{ \"dps\": 1, \"set\": true }". But you may have other issues if you have openhab running on windows. 
 
 Example:
 ```
 node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{ "dps": 1, "set": true }'
+node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{"multiple":true,"data":{"1":false,"7":false}}'
 ```
 Get 
 
