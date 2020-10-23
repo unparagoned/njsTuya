@@ -152,7 +152,7 @@ All commands return the state of the switch.
 
 2. GET/SET commands for dps:
 
-dps is for local mode only, see below (2.b) for cloud options
+dps is for local mode only, see below (2.b) for cloud optio
 
 ```
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
