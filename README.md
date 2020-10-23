@@ -1,5 +1,5 @@
 # njsTuya
-Openhab interface for Tuya home automation devices sold under various names. 
+Openhab interface for Tuya home automation devices sold under various names.
 
 This is a wrapper script for codetheweb/tuyapi. https://github.com/codetheweb/tuyapi
 and unparagoned/cloudtuya https://github.com/unparagoned/cloudtuya
@@ -21,7 +21,7 @@ Run the following which should find all devices on your netork and return their 
 node node_modules/njstuya
 ```
 ### Configuration
-To use create a rule which sends a command to the script 
+To use create a rule which sends a command to the script
 ```
 var resp = executeCommandLine("node /etc/openhab2/scripts/node_modules/njstuya" + command, 50000)
 logInfo("Tuya", "Run Command: [{}] Result {}", command, resp)
@@ -79,7 +79,7 @@ curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-The following shouldn't be necessary but might be if you have old version of node and don't have timeout. 
+The following shouldn't be necessary but might be if you have old version of node and don't have timeout.
 
 ```
 #update node if you have an old version and have problems
@@ -92,7 +92,7 @@ pip install timeout
 ```
 
 ### Configuration to obtain private key
-You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection. 
+You have to create an item with with your devices ip, id and key.(Or if you just have one device you can hardcode the parameters into the exec command as below) This involves MIM of the connection.
 
 #### Android
 1. Install "Package Capture" from play store.
@@ -105,7 +105,7 @@ You have to create an item with with your devices ip, id and key.(Or if you just
 8. You should now have an entry below showing x number of captures.Tap that to open it.
 In mine I had to open the last packet in the list that was marked as SSL.
 9. Scroll down through the first few blocks and you should see a large JSON block
-This contains a lot of code but if you scroll through it you should see line like the ones below 
+This contains a lot of code but if you scroll through it you should see line like the ones below
 
 "devAttribute": 0
 "name": Smart Socket 4"
@@ -152,7 +152,7 @@ All commands return the state of the switch.
 
 2. GET/SET commands for dps:
 
-Works in local mode only. 
+dps is for local mode only, see below (2.b) for cloud options
 
 ```
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
@@ -160,7 +160,7 @@ node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
 Where the GETCOMMAND should be of the following format, including quote marks ```'{ "dps": 1 }' ```
 
 ##### WINDOWS COMMAND FORMAT #####
-If you are on windows or just using the command line on linux you can use the old syntax ```"{ \"dps\": 1 }"```. But you may have issues using this format through the set command in openhab. 
+If you are on windows or just using the command line on linux you can use the old syntax ```"{ \"dps\": 1 }"```. But you may have issues using this format through the set command in openhab.
 
 To get all the dps options for your device use the get command to get the schema
 Example:
@@ -175,16 +175,25 @@ node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set SETCOMMAND
 ```
 
 Where SETCOMMAND should be of the following format, including quote marks '{ "dps": 1, "set": true }' or '{"multiple":true,"data":{"1":false,"7":false}}'
-Note for windows you have to use the following format for the command line "{ \"dps\": 1, \"set\": true }". But you may have other issues if you have openhab running on windows. 
+Note for windows you have to use the following format for the command line "{ \"dps\": 1, \"set\": true }". But you may have other issues if you have openhab running on windows.
 
 Example:
 ```
 node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{ "dps": 1, "set": true }'
 node njstuya.js -ip 10.0.0.2 -id 213klj349sdfjl324po32 -key 342kljerw98 -set '{"multiple":true,"data":{"1":false,"7":false}}'
 ```
-Get 
+Get
 
 You may need to play about with the dps if you have multiple function for your device.
+
+2.b SET commands for cloud mode:
+
+```
+node njstuya.js -mode cloud -id DEVICEID -set "{\"command\": \"temperatureSet\", \"value\": 30}"
+node njstuya.js -mode cloud -id DEVICEID -set "{\"command\": \"turnOnOff\", \"value\": 1}"
+
+```
+
 
 ## Habpanel
 Here is how you would use a slider in habpanel to change the set temp.
@@ -196,7 +205,7 @@ Here is how you would use a slider in habpanel to change the set temp.
 ```
 ## Usage
 
-The following is an extract from Habpanel which shows how to send commands to the item. 
+The following is an extract from Habpanel which shows how to send commands to the item.
 Send ON,OFF,TOGGLE to LivingRoomCommand.
 
 ```
@@ -234,7 +243,7 @@ Send ON,OFF,TOGGLE to LivingRoomCommand.
     <div class="bottom" ng-init="switchState=itemValue('LivingRoomHeater'); ttoggle=true">
       <div class="name">Set Target Temp: {{itemValue('KitchenThermostatTargetTemp')}}</div>
       <div ng-init="slider = { value: 20, options: { floor: 15, ceil: 40, step: 1, showSelectionBar: true } }; slider.value=itemValue('KitchenThermostatTargetTemp')"></div>
-      
+
       <div ng-switch on="slider.value">
         <div ng-switch-default>
           <div ng-init="sendCmd('KitchenThermostatTargetTemp', slider.value)"></div>

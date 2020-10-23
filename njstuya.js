@@ -6,6 +6,7 @@
  * njstuya.js -mode cloud -user email -pass password -biz smart_life -code 44 -region eu -id 12312312312 COMMAND
  * OR add details to key.json
  * njstuya.js -mode cloud -id 12312312312 COMMAND
+ * njstuya.js -mode cloud -id 12312312312 -set "{\"command\": \"temperatureSet\", \"value\": 30}"
  * ** USE LOCAL LAN
  * node njstuya.js args COMMAND
  * node njstuya.js -ip 192.168.x.x -id 1231204564df -key dsf456sdf COMMAND
@@ -170,15 +171,17 @@ async function setState(iState) {
   });
 }
 
-async function setStateCloud(iState) {
+async function setStateCloud(iState, command = 'turnOnOff') {
   const resp = await api.setState({
     devId: tuyaID,
     setState: iState,
+    command,
   });
-  const status = cState(iState);
+
+  const status = (command === 'turnOnOff') ? bmap(cState(iState)) : iState;
   if(resp.header.code === 'SUCCESS') {
-    print(bmap(status));
-  } else print(bmap(status));
+    print(status);
+  } else print(resp.header.code || 'ERROR');
 }
 
 async function runCloud() {
@@ -188,9 +191,11 @@ async function runCloud() {
     await setStateCloud(1);
   } else if(isCommand('Off')) {
     await setStateCloud(0);
-  } else if(isCommand('-Set')) throw new Error('Set not available on cloud yet');
-  else{
-  // Get state of a single device
+  } else if(isCommand('-Set')) {
+    const setCommand = JSON.parse(tuyaSet);
+    await setStateCloud(setCommand.value, setCommand.command);
+  } else{
+    // Get state of a single device
     const deviceStates = await api.state({
       devId: tuyaID,
     });
@@ -239,13 +244,13 @@ async function getSchema(ip, id, key = '1000000000000000', version = '') {
     });
     newTuya.on('data', (schema) => {
       debug(`${id}: ${JSON.stringify(schema)}`);
-      try {
+      try{
         newTuya.disconnect();
         const broadcast = {};
         Object.keys(newTuya.device).forEach((dkey) => {
           if(dkey !== 'parser' && dkey !== 'key') broadcast[dkey] = newTuya.device[dkey];
         });
-        deviceData = {id, broadcast, schema};
+        deviceData = { id, broadcast, schema };
         print(JSON.stringify(deviceData));
         Object.keys(schema).forEach(attname => debug(`${attname}: ${JSON.stringify(schema[attname])}`));
         resolve(deviceData);
@@ -351,6 +356,6 @@ async function runLocal() {
  */
 async function main() {
   if(tuyaMode.includes('cloud')) runCloud();
-  else runLocal().catch((error)=>debug(error));
+  else runLocal().catch(error => debug(error));
 }
 main();
