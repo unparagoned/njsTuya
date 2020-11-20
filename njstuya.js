@@ -171,13 +171,19 @@ async function setState(iState) {
   });
 }
 
-async function setStateCloud(iState, command = 'turnOnOff') {
+async function setStateCloud(command, payload) {
   const resp = await api.setState({
     devId: tuyaID,
-    setState: iState,
     command,
+    payload,
   });
+  debug(resp);
+  return resp;
+}
 
+
+async function switchStateCloud(iState, command = 'turnOnOff') {
+  const resp = await setStateCloud(command, { value: iState });
   const status = (command === 'turnOnOff') ? bmap(cState(iState)) : iState;
   if(resp.header.code === 'SUCCESS') {
     print(status);
@@ -187,18 +193,20 @@ async function setStateCloud(iState, command = 'turnOnOff') {
 async function runCloud() {
   const tokens = await api.login();
   debug(`Token ${JSON.stringify(tokens)}`);
+
   if(isCommand('On')) {
-    await setStateCloud(1);
+    await switchStateCloud(1);
   } else if(isCommand('Off')) {
-    await setStateCloud(0);
+    await switchStateCloud(0);
   } else if(isCommand('-Set')) {
     const setCommand = JSON.parse(tuyaSet);
-    await setStateCloud(setCommand.value, setCommand.command);
+    await setStateCloud(setCommand.command, setCommand.payload);
   } else{
     // Get state of a single device
     const deviceStates = await api.state({
       devId: tuyaID,
     });
+    debug(`deviceSTates ${JSON.stringify(deviceStates)}`);
     const status = ((tuyaID.length > 0) && deviceStates[tuyaID]) || deviceStates;
 
     if(isCommand('Toggle')) {
@@ -207,7 +215,7 @@ async function runCloud() {
       if(status.includes('ON')) {
         newState = 0;
       }
-      setStateCloud(newState);
+      switchStateCloud(newState);
     } else{
       if(isCommand('-Get')) throw new Error('Set not available on cloud yet');
       // Shows state for all gets status or toggle

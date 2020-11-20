@@ -152,7 +152,7 @@ All commands return the state of the switch.
 
 2. GET/SET commands for dps:
 
-dps is for local mode only, see below (2.b) for cloud optio
+dps is for local mode only, see below (2.b) for cloud option
 
 ```
 node njstuya.js -ip DEVICEIP -id DEVICEID -key DEVICEKEY -set GETCOMMAND
@@ -189,8 +189,9 @@ You may need to play about with the dps if you have multiple function for your d
 2.b SET commands for cloud mode:
 
 ```
-node njstuya.js -mode cloud -id DEVICEID -set "{\"command\": \"temperatureSet\", \"value\": 30}"
-node njstuya.js -mode cloud -id DEVICEID -set "{\"command\": \"turnOnOff\", \"value\": 1}"
+node njstuya.js -mode cloud -id DEVICEID -set "{\"command\": \"temperatureSet\", \"payload\" : { \"value\": 30 }}"
+node njstuya.js -mode cloud -id DEVICEID -set  '{"command": "turnOnOff", "payload" : {"value": 1 }}'
+node njstuya.js -mode cloud -id DEVICEID -set  '{"command": "colorSet", "payload" :{"color": "{ \"hue\": 50, \"saturation\": 50, \"brightness\": 50}" }}'
 
 ```
 
