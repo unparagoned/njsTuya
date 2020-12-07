@@ -198,7 +198,7 @@ async function switchStateCloud(iState, command = 'turnOnOff') {
 async function runCloud() {
   let tokens;
   try{
-    tokens = require(`${__dirname}/cloudToken.json`);
+    tokens = JSON.parse(fs.readFileSync('./cloudToken.json'));
     debug(`cloud Token Catch ${JSON.stringify(tokens)}`);
     if(tokens.valid_to < Date.now() + 10) throw ('update token');
     api.setToken(tokens);
@@ -206,7 +206,6 @@ async function runCloud() {
     debug(err);
     tokens = await api.login();
     tokens.valid_to = Date.now() + tokens.expires_in;
-    fs.writeFileSync(`${__dirname}/cloudToken.json`, JSON.stringify(tokens));
   }
 
   debug(`Token: ${JSON.stringify(tokens)}`);
@@ -240,6 +239,7 @@ async function runCloud() {
       print(status);
     }
   }
+  fs.writeFileSync(`./cloudToken.json`, JSON.stringify(tokens));
 }
 
 async function getSchema(ip, id, key = '1000000000000000', version = '') {
