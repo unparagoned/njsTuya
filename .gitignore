@@ -2,3 +2,4 @@ node_modules
 node_modules/*
 key.json
 npm-debug.log
+cloudToken.json
