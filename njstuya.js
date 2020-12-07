@@ -3,6 +3,7 @@
  * Added support for more devices through set command
  * npm install unparagoned/njsTuya
  * NEW CLOUD MODE
+
  * njstuya.js -mode cloud -user email -pass password -biz smart_life -code 44 -region eu -id 12312312312 COMMAND
  * OR add details to key.json
  * njstuya.js -mode cloud -id 12312312312 COMMAND
@@ -20,6 +21,7 @@
 const debug = require('debug')('njstuya');
 const CloudTuya = require('cloudtuya');
 const TuyaDevice = require('tuyapi');
+const fs = require('fs');
 
 const name = 'njstuya';
 
@@ -191,8 +193,19 @@ async function switchStateCloud(iState, command = 'turnOnOff') {
 }
 
 async function runCloud() {
-  const tokens = await api.login();
-  debug(`Token ${JSON.stringify(tokens)}`);
+  let tokens;
+    try{
+      tokens = require('./cloudToken.json');
+      debug(`cloud Token Catch ${JSON.stringify(tokens)}`);
+      if(tokens.valid_to < Date.now()+10) throw('update token')
+      api.setToken(tokens);
+    } catch(err) {
+      tokens = await api.login();
+      tokens.valid_to = Date.now() + tokens.expires_in;
+      fs.writeFileSync('./cloudToken.json', JSON.stringify(tokens));
+    }
+
+  debug(`Token: ${JSON.stringify(tokens)}`);
 
   if(isCommand('On')) {
     await switchStateCloud(1);
@@ -206,7 +219,7 @@ async function runCloud() {
     const deviceStates = await api.state({
       devId: tuyaID,
     });
-    debug(`deviceSTates ${JSON.stringify(deviceStates)}`);
+    debug(`deviceStates ${JSON.stringify(deviceStates)}`);
     const status = ((tuyaID.length > 0) && deviceStates[tuyaID]) || deviceStates;
 
     if(isCommand('Toggle')) {
