@@ -174,11 +174,14 @@ async function setState(iState) {
 }
 
 async function setStateCloud(command, payload) {
-  const resp = await api.setState({
+  const state = {
     devId: tuyaID,
     command,
     payload,
-  });
+  }
+  // Legacy support for setCommand
+  if(Object.keys(payload).includes('value')) state.setState = payload.value;
+  const resp = await api.setState(state);
   debug(resp);
   return resp;
 }
