@@ -65,10 +65,14 @@ else tuyaResolve = ((tuyaResolve.includes('false') ? false : tuyaResolve));
 
 function getKey() {
   try{
-    const key = require('./key.json');
+    let key = require('./key.json');
     return key;
   } catch(err) {
-    return{};
+    try {
+      return require('../../key.json')
+    } catch (error) {
+      return {}
+    }
   }
 }
 const apiKey = getKey();
